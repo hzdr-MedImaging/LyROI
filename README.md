@@ -1,4 +1,4 @@
-# LyROI – nnU-Net-based Lymphoma Total Metabolic Tumor Volume Segmentation Tool
+# LyROI – nnU-Net-based Lymphoma Total Metabolic Tumor Volume Segmentation
 
 > [!IMPORTANT]
 > **Regulatory status:** This software and the bundled model are intended **solely for research and development (R&D)**.  
