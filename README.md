@@ -1,8 +1,7 @@
 # LyROI – nnU-Net-based Lymphoma Total Metabolic Tumor Volume Segmentation
 
 > [!IMPORTANT]
-> **Regulatory status:** This software and the bundled model are intended **solely for research and development (R&D)**.  
-> They are **not** intended for diagnosis, therapy, or any other clinical decision-making and must **not** be used as a medical device.
+> **Regulatory status:** This software and the bundled model are intended **solely for research and development (R&D)**. They are **not** intended for primary diagnosis, therapy, or any other clinical decision-making and must **not** be used as a medical device.
 
 ## Overview
 This repository provides a lightweight tool and configuration to run inference with a bundled **nnU-Net v2**-based segmentation model.  
