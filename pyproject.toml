@@ -8,7 +8,20 @@ license = "Apache-2.0"
 authors = [
   { name = "Pavel Nikulin", email = "p.nikulin@hzdr.de" }
 ]
-keywords = ["dummy", "example", "setuptools"]
+keywords = [
+    "deep learning",
+    "ai",
+    "lymphoma",
+    "pet",
+    "petct",
+    "tmtv",
+    "mtv",
+    "nnunet",
+    "lyroi",
+    "delineations",
+    "segmentation",
+    "cancer",
+]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
@@ -32,5 +45,5 @@ Documentation = "https://github.com/hzdr-MedImaging/LyROI/blob/main/README.md"
 Source = "https://github.com/hzdr-MedImaging/LyROI"
 
 [build-system]
-requires = ["setuptools>=61.0", "wheel"]
+requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
