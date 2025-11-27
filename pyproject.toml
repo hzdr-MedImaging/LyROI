@@ -1,0 +1,36 @@
+[project]
+name = "lyroi"
+version = "0.1.0"
+description = "LyROI - nnU-Net-based Lymphoma Total Metabolic Tumor Volume Segmentation"
+readme = "README.md"
+requires-python = ">=3.9"
+license = "Apache-2.0"
+authors = [
+  { name = "Pavel Nikulin", email = "p.nikulin@hzdr.de" }
+]
+keywords = ["dummy", "example", "setuptools"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Healthcare Industry",
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Scientific/Engineering :: Image Recognition",
+    "Topic :: Scientific/Engineering :: Medical Science Apps.",
+]
+
+dependencies = [
+    'torch>=2.1.2',
+    'numpy',
+    'nnunetv2>=2.5.1'
+]
+
+[project.urls]
+Homepage = "https://github.com/hzdr-MedImaging/LyROI"
+Documentation = "https://github.com/hzdr-MedImaging/LyROI/blob/main/README.md"
+Source = "https://github.com/hzdr-MedImaging/LyROI"
+
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
