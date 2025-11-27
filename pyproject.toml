@@ -6,7 +6,8 @@ readme = "README.md"
 requires-python = ">=3.9"
 license = "Apache-2.0"
 authors = [
-  { name = "Pavel Nikulin", email = "p.nikulin@hzdr.de" }
+    { name = "Pavel Nikulin", email = "p.nikulin@hzdr.de" },
+    { name = "Jens Maus", email = "j.maus@hzdr.de" }
 ]
 keywords = [
     "deep learning",
@@ -43,6 +44,9 @@ dependencies = [
 Homepage = "https://github.com/hzdr-MedImaging/LyROI"
 Documentation = "https://github.com/hzdr-MedImaging/LyROI/blob/main/README.md"
 Source = "https://github.com/hzdr-MedImaging/LyROI"
+
+[project.scripts]
+lyroi = "lyroi.lyroi:predict_petct_entrypoint"
 
 [build-system]
 requires = ["setuptools>=61.0"]
