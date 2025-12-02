@@ -1,6 +1,7 @@
-import pathlib
+from pathlib import Path
 from packaging.version import Version
 from lyroi.utils import check_model, install_model, check_setup, setup_lyroi, check_version_local, check_version_online
+from lyroi.inference import predict_from_folder
 
 
 def predict_petct_entrypoint():
@@ -17,6 +18,9 @@ def predict_petct_entrypoint():
                              'have the same name as their source images but without the channel specifiers.')
     parser.add_argument('-m', '--mode', type=str, default='petct', choices=['petct'],
                         help='One of the supported modes of operation. Default: petct')
+    parser.add_argument('-d', '--device', type=str, default='gpu', choices=['gpu', 'cpu', 'mps'],
+                        help='Computational device to use for prediction. Choose from gpu (default), cpu, and mps.'
+                             'If select specific gpu, execute "export CUDA_VISIBLE_DEVICES=..." before running LyROI')
     args = parser.parse_args()
     print("Input:", args.i)
     print("Output:", args.o)
@@ -24,8 +28,10 @@ def predict_petct_entrypoint():
     assert check_model(args.mode), ("Models for the selected mode of operation have not been installed yet!"
                                     "Run 'lyroi_install " + args.mode + " to download and install the models'")
 
-    if not pathlib.Path(args.o).exists():
-        pathlib.Path(args.o).mkdir(exist_ok=True, parents=True)
+    if not Path(args.o).exists():
+        Path(args.o).mkdir(exist_ok=True, parents=True)
+
+    predict_from_folder(args.i, args.o, args.mode, device='gpu')
 
 
 def install_model_entrypoint():

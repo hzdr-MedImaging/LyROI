@@ -55,8 +55,7 @@ def check_version_online(mode):
         j_file = json.loads(version_file)
         return j_file[mode]
     except Exception as e:
-        print("Cannot reach the online model repository! Please check your internet connection or contact the developer.")
-        exit(1)
+        exit("Cannot reach the online model repository! Please check your internet connection or contact the developer.")
 
 def check_version_local(mode):
     version_list = []
