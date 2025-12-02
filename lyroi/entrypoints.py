@@ -1,7 +1,11 @@
 import pathlib
-from lyroi.utils import check_model, install_model, check_setup, setup_lyroi
+from packaging.version import Version
+from lyroi.utils import check_model, install_model, check_setup, setup_lyroi, check_version_local, check_version_online
+
 
 def predict_petct_entrypoint():
+    setup_lyroi()
+
     import argparse
     parser = argparse.ArgumentParser(description='Run lymphoma ROI prediction for the given input folder.')
     parser.add_argument('-i', type=str, required=True,
@@ -11,34 +15,64 @@ def predict_petct_entrypoint():
     parser.add_argument('-o', type=str, required=True,
                         help='Output folder. If it does not exist, it will be created. Predicted segmentations will '
                              'have the same name as their source images but without the channel specifiers.')
+    parser.add_argument('-m', '--mode', type=str, default='petct', choices=['petct'],
+                        help='One of the supported modes of operation. Default: petct')
     args = parser.parse_args()
     print("Input:", args.i)
     print("Output:", args.o)
 
-    if check_setup():
-        print("Setup is correct")
-    else:
-        print("Setup has not been preformed correctly")
+    assert check_model(args.mode), ("Models for the selected mode of operation have not been installed yet!"
+                                    "Run 'lyroi_install " + args.mode + " to download and install the models'")
 
     if not pathlib.Path(args.o).exists():
         pathlib.Path(args.o).mkdir(exist_ok=True, parents=True)
 
+
 def install_model_entrypoint():
+    setup_lyroi()
+
     import argparse
     parser = argparse.ArgumentParser(description='Install the models required for running LyROI in the selected mode')
     parser.add_argument('mode', type=str, choices=['petct'],
                         help='One of the supported modes of operation')
+    parser.add_argument('-f', '--force', action='store_true', default=False, help="Force reinstall the"
+                                                                                  "model even if it is already installed and up to date.")
     parser.add_argument('-c', '--check', action='store_true', default=False, help="Check if the models are"
-                        "already installed. Does not run the installation process itself")
+                                                                                  "already installed. Does not run the installation process itself")
     args = parser.parse_args()
     print("Selected mode:", args.mode)
+    is_installed = check_model(args.mode)
     if args.check:
-       if check_model(args.mode):
-          print("The model is installed")
-       else:
-          print("The model is not installed")
-       return
+        if is_installed:
+            try:
+                cur_version = Version(check_version_local(args.mode))
+                online_version = Version(check_version_online(args.mode))
+                if cur_version == online_version:
+                    print("The model is installed and up to date. Current version:", cur_version)
+                elif cur_version < online_version:
+                    print("The model is installed but there is a newer version available online. Current version:",
+                          cur_version, ", newest version:", online_version)
+                else:
+                    print("The model is installed and it seems to be newer than the newest version available online.",
+                          "This should not happen...",
+                          "Current version:", cur_version, ", newest version:", online_version)
+            except Exception as e:
+                print("The model installation is inconsistent:")
+                print(e)
+        else:
+            print("The model is not installed or installation is incomplete")
+        return
 
-    setup_lyroi()
+    try:
+        cur_version = check_version_local(args.mode)
+        online_version = check_version_online(args.mode)
+        up_to_date = cur_version == online_version
+    except Exception as e:
+        cur_version = "None"
+        up_to_date = False
+
+    if is_installed and not args.force and up_to_date:
+        print("The installed model is up to date ( version:", cur_version, "). Use flag -f to force reinstall the model.")
+        return
+
     install_model(args.mode)
-

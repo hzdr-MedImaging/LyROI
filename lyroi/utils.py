@@ -1,5 +1,8 @@
+import json
 import os
-import pathlib
+import requests
+
+from pathlib import Path
 
 
 def get_model_folders(mode):
@@ -27,58 +30,94 @@ def get_folds(mode):
 
 def install_model(mode):
     from nnunetv2.model_sharing.model_download import download_and_install_from_url
+    # collection of sources. Should automatically resolve to the latest versions of the models
     download_links = []
     if mode == 'petct':
-        download_links.append("https://rodare.hzdr.de/record/4161/files/LyROI_Orig.zip")
-        download_links.append("https://rodare.hzdr.de/record/4161/files/LyROI_ResM.zip")
-        download_links.append("https://rodare.hzdr.de/record/4161/files/LyROI_ResL.zip")
+        download_links.append("https://rodare.hzdr.de/record/4160/files/LyROI_Orig.zip")
+        download_links.append("https://rodare.hzdr.de/record/4160/files/LyROI_ResM.zip")
+        download_links.append("https://rodare.hzdr.de/record/4160/files/LyROI_ResL.zip")
 
+    # downloading and installing
     for link in download_links:
         download_and_install_from_url(link)
+
+    # writing a current version
+    ver = check_version_online(mode)
+    model_folders = get_model_folders(mode)
+    for folder in model_folders:
+        Path(folder, "VERSION").write_text(ver)
+
+def check_version_online(mode):
+    try:
+        r = requests.get("https://dl.dropboxusercontent.com/scl/fi/52sottxnxx9zcr6aogxgv/VERSION?rlkey=zutjwm63wcb5qr46x1bqlkf8u&e=1&st=bd5c5qtz&dl=0")
+        # r = requests.get("https://rodare.hzdr.de/record/4160/files/VERSION")
+        version_file = r.content.decode("utf-8")
+        j_file = json.loads(version_file)
+        return j_file[mode]
+    except Exception as e:
+        print("Cannot reach the online model repository! Please check your internet connection or contact the developer.")
+        exit(1)
+
+def check_version_local(mode):
+    version_list = []
+    model_folders = get_model_folders(mode)
+    for folder in model_folders:
+        if Path(folder, "VERSION").exists():
+            version_list.append(Path(folder, "VERSION").read_text())
+        else:
+            version_list.append(None)
+    uniques = set(version_list)
+
+    if None in uniques:
+        raise Exception("One or more submodels are missing the version information!")
+    if len(uniques) > 1:
+        raise Exception("Versions mismatch between the submodels!")
+
+    return uniques.pop()
 
 def check_model(mode):
     folder_list = get_model_folders(mode)
     fold_list = get_folds(mode)
     status = True
     for folder in folder_list:
-        status = status and pathlib.Path(folder, "dataset.json").exists()
-        status = status and pathlib.Path(folder, "plans.json").exists()
+        status = status and Path(folder, "dataset.json").exists()
+        status = status and Path(folder, "plans.json").exists()
         for fold in fold_list:
-            status = status and pathlib.Path(folder, "fold_" + str(fold), "checkpoint_final.pth").exists()
-
-
+            status = status and Path(folder, "fold_" + str(fold), "checkpoint_final.pth").exists()
     return status
-
 
 def get_lyroi_dir():
     if 'LYROI_DIR' in os.environ:
         return os.environ['LYROI_DIR']
     else:
-        return str(pathlib.Path(pathlib.Path.home() , '.lyroi')) #default
+        return str(Path(Path.home() , '.lyroi')) #default
 
 def get_models_dir():
-    return str(pathlib.Path(get_lyroi_dir(), "nnUNet_results"))
+    return str(Path(get_lyroi_dir(), "nnUNet_results"))
+
+def get_tmp_dir():
+    return str(Path(get_lyroi_dir(), "tmp"))
 
 def check_setup():
     status = True
     lyroi_dir = get_lyroi_dir()
     models_dir = get_models_dir()
-    status = status and pathlib.Path(lyroi_dir).exists()
+    status = status and Path(lyroi_dir).exists()
     status = status and 'nnUNet_raw' in os.environ
     status = status and 'nnUNet_preprocessed' in os.environ
     status = status and 'nnUNet_results' in os.environ
-    status = status and pathlib.Path(lyroi_dir) in pathlib.Path(models_dir).parents
+    status = status and Path(lyroi_dir) in Path(models_dir).parents
     return status
 
 def setup_lyroi():
     lyroi_dir = get_lyroi_dir()
-    if not pathlib.Path(lyroi_dir).exists():
+    if not Path(lyroi_dir).exists():
         print("Creating LyROI directory:" + lyroi_dir)
-        pathlib.Path(lyroi_dir).mkdir(exist_ok=True, parents=True)
+        Path(lyroi_dir).mkdir(exist_ok=True, parents=True)
 
     models_dir = get_models_dir()
-    if not pathlib.Path(models_dir).exists():
-        pathlib.Path(models_dir).mkdir(exist_ok=True, parents=True)
+    if not Path(models_dir).exists():
+        Path(models_dir).mkdir(exist_ok=True, parents=True)
 
     os.environ['nnUNet_raw'] = ""
     os.environ['nnUNet_preprocessed'] = ""
@@ -87,5 +126,11 @@ def setup_lyroi():
 if __name__ == "__main__":
     setup_lyroi()
     print(os.environ['nnUNet_results'])
-    print("All correct: ", check_setup())
+    print("All correct:", check_setup())
     print("Model found:", check_model("petct"))
+    print("Online version:", check_version_online("petct"))
+    try:
+        version = check_version_local("petct")
+        print("Local version:", version)
+    except Exception as e:
+        print(e)
