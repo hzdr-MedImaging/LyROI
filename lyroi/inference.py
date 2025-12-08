@@ -1,4 +1,5 @@
 import shutil
+import sys
 import time
 import nibabel as nib
 import numpy as np
@@ -7,7 +8,7 @@ from lyroi.utils import get_model_folders, get_folds, get_tmp_dir
 from lyroi.nnunet_interface import nnunet_predict, get_torch_device
 from pathlib import Path
 
-def merge_delineations(input_folders, output_folder, strategy="u", force = False):
+def merge_delineations(input_folders, output_folder, strategy="u", force = True):
     assert strategy in ["u", "i", "m"], "Invalid merging strategy"
 
     input_files = [list(Path(input_dir).glob("*.nii.gz")) for input_dir in input_folders]
@@ -25,7 +26,7 @@ def merge_delineations(input_folders, output_folder, strategy="u", force = False
             if force:
                 file_out.unlink()
             else:
-                raise FileExistsError(f"Output file {file_out} already exists")
+                raise FileExistsError(f"Output file {file_out} already exists!")
 
         if len(files_in) == 1:
             # no need to merge anything. Just move files
@@ -48,6 +49,7 @@ def predict_from_folder(input_folder, output_folder, mode, device='gpu'):
     model_folders = get_model_folders(mode)
     folds = get_folds(mode)
     tmp_dir = get_tmp_dir()
+    tmp_rundir = Path(tmp_dir, str(time.time_ns()))
     tmp_subdirs = []
 
     print("Starting predictions. Wait until all models finish prediction to see the results")
@@ -57,15 +59,17 @@ def predict_from_folder(input_folder, output_folder, mode, device='gpu'):
         for folder in model_folders:
             counter += 1
             print(f"Predicting with model {counter}/{len(model_folders)}")
-            tmp_subdir = Path(tmp_dir, Path(folder).stem + "_" + str(time.time_ns()))
+            tmp_subdir = Path(tmp_rundir, Path(folder).stem)
             tmp_subdirs.append(tmp_subdir)
             nnunet_predict(input_folder, tmp_subdir, folder, folds, torch_device)
         print("Merging delineations...")
         merge_delineations(tmp_subdirs, output_folder)
     except Exception as e:
+        print("Execution halted: ", e.args[0])
         raise e
     finally:
         for tmp_subdir in tmp_subdirs:
             for file in tmp_subdir.iterdir():
                 file.unlink()
             tmp_subdir.rmdir()
+        tmp_rundir.rmdir()
