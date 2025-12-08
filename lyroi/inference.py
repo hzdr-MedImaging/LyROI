@@ -1,5 +1,3 @@
-import shutil
-import sys
 import time
 import nibabel as nib
 import numpy as np
@@ -46,6 +44,8 @@ def merge_delineations(input_folders, output_folder, strategy="u", force = True)
             nib.save(nifti_out, file_out)
 
 def predict_from_folder(input_folder, output_folder, mode, device='gpu'):
+    # TODO: do checks for input files and output files before running predictions
+
     model_folders = get_model_folders(mode)
     folds = get_folds(mode)
     tmp_dir = get_tmp_dir()

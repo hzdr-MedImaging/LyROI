@@ -1,7 +1,6 @@
 from pathlib import Path
 from packaging.version import Version
 from lyroi.utils import check_model, install_model, check_setup, setup_lyroi, check_version_local, check_version_online
-from lyroi.inference import predict_from_folder
 
 
 def predict_petct_entrypoint():
@@ -20,7 +19,7 @@ def predict_petct_entrypoint():
                         help='One of the supported modes of operation. Default: petct')
     parser.add_argument('-d', '--device', type=str, default='gpu', choices=['gpu', 'cpu', 'mps'],
                         help='Computational device to use for prediction. Choose from gpu (default), cpu, and mps.'
-                             'If select specific gpu, execute "export CUDA_VISIBLE_DEVICES=..." before running LyROI')
+                             'To select specific gpu, execute "export CUDA_VISIBLE_DEVICES=..." before running LyROI')
     args = parser.parse_args()
     print("Input:", args.i)
     print("Output:", args.o)
@@ -31,6 +30,8 @@ def predict_petct_entrypoint():
     if not Path(args.o).exists():
         Path(args.o).mkdir(exist_ok=True, parents=True)
 
+    # import here to accelerate startup
+    from lyroi.inference import predict_from_folder
     predict_from_folder(args.i, args.o, args.mode, device='gpu')
 
 
