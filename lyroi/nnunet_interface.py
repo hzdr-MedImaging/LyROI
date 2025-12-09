@@ -23,7 +23,6 @@ def get_torch_device(device='gpu'):
     return device
 
 def nnunet_predict(input_folder, output_folder, model_folder, folds, torch_device):
-
     predictor = nnUNetPredictor(tile_step_size=0.5,
                                 use_gaussian=True,
                                 use_mirroring=True,
@@ -38,6 +37,7 @@ def nnunet_predict(input_folder, output_folder, model_folder, folds, torch_devic
         folds,
         checkpoint_name='checkpoint_final.pth'
     )
+
     predictor.predict_from_files(str(input_folder), str(output_folder),
                                  save_probabilities=False,
                                  overwrite=True,

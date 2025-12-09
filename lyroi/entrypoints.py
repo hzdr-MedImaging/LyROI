@@ -4,8 +4,6 @@ from lyroi.utils import check_model, install_model, check_setup, setup_lyroi, ch
 
 
 def predict_petct_entrypoint():
-    setup_lyroi()
-
     import argparse
     parser = argparse.ArgumentParser(description='Run lymphoma ROI prediction for the given input folder.')
     parser.add_argument('-i', type=str, required=True,
@@ -23,6 +21,9 @@ def predict_petct_entrypoint():
     args = parser.parse_args()
     print("Input:", args.i)
     print("Output:", args.o)
+    # import here to accelerate startup
+    from lyroi.inference import predict_from_folder
+    setup_lyroi()
 
     assert check_model(args.mode), ("Models for the selected mode of operation have not been installed yet!"
                                     "Run 'lyroi_install " + args.mode + " to download and install the models'")
@@ -30,8 +31,6 @@ def predict_petct_entrypoint():
     if not Path(args.o).exists():
         Path(args.o).mkdir(exist_ok=True, parents=True)
 
-    # import here to accelerate startup
-    from lyroi.inference import predict_from_folder
     predict_from_folder(args.i, args.o, args.mode, device='gpu')
 
 
