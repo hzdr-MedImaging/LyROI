@@ -2,7 +2,7 @@ import time
 import nibabel as nib
 import numpy as np
 
-from lyroi.utils import get_model_folders, get_folds, get_tmp_dir
+from lyroi.utils import get_model_folders, get_folds, get_tmp_dir, get_suffixes
 from lyroi.nnunet_interface import nnunet_predict, get_torch_device
 from pathlib import Path
 
@@ -43,8 +43,25 @@ def merge_delineations(input_folders, output_folder, strategy="u", force = True)
             nifti_out = nib.Nifti1Image(result.astype(np.uint8), affine=imgs_in[0].affine, header=imgs_in[0].header)
             nib.save(nifti_out, file_out)
 
+def check_inputs(input_folder, mode):
+    suffixes = get_suffixes(mode)
+
+    if len(suffixes) == 1:
+        return True
+
+    suffixes = [suffix + ".nii.gz" for suffix in suffixes]
+    input_lists = [list(Path(input_folder).glob("*"+ suffix)) for suffix in suffixes]
+    input_ids = [[input_file.name.removesuffix(suffix) for input_file in input_list] for input_list, suffix in zip(input_lists, suffixes)]
+
+    unpaired = (set(input_ids[0]) - set(input_ids[1])) | (set(input_ids[1]) - set(input_ids[0]))
+    if len(unpaired) == 0:
+        return True
+    else:
+        names = "\n".join(unpaired)
+        exit("Cannot proceed, the following patients are missing either CT or PET:\n" + names)
+
 def predict_from_folder(input_folder, output_folder, mode, device='gpu'):
-    # TODO: do checks for input files and output files before running predictions
+    check_inputs(input_folder, mode)
 
     model_folders = get_model_folders(mode)
     folds = get_folds(mode)

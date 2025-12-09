@@ -28,6 +28,14 @@ def get_folds(mode):
         folds = ['all']
     return folds
 
+def get_suffixes(mode):
+    suffixes = []
+    if mode == 'petct':
+        suffixes = ['_0000', '_0001']
+    if mode == 'petct_turbo':
+        suffixes = ['_0000', '_0001']
+    return suffixes
+
 def install_model(mode):
     from nnunetv2.model_sharing.model_download import download_and_install_from_url
     # collection of sources. Should automatically resolve to the latest versions of the models
