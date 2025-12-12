@@ -36,34 +36,44 @@ def get_suffixes(mode):
         suffixes = ['_0000', '_0001']
     return suffixes
 
+def get_repository_url():
+    try:
+        # collection of sources. Should automatically resolve to the latest versions of the models
+        r = requests.head("https://rodare.hzdr.de/record/4160", allow_redirects=True)
+        return r.url
+    except Exception as e:
+        exit("Cannot reach the online model repository! Please check your internet connection or contact the developer.")
+
 def install_model(mode):
     from nnunetv2.model_sharing.model_download import download_and_install_from_url
-    # collection of sources. Should automatically resolve to the latest versions of the models
+    repository_url = get_repository_url()
+    ver = check_version_online(mode, repository_url)
+
     download_links = []
     if mode == 'petct':
-        download_links.append("https://rodare.hzdr.de/record/4160/files/LyROI_Orig.zip")
-        download_links.append("https://rodare.hzdr.de/record/4160/files/LyROI_ResM.zip")
-        download_links.append("https://rodare.hzdr.de/record/4160/files/LyROI_ResL.zip")
+        download_links.append(repository_url + "/files/LyROI_Orig.zip")
+        download_links.append(repository_url + "/files/LyROI_ResM.zip")
+        download_links.append(repository_url + "/files/LyROI_ResL.zip")
 
     # downloading and installing
     for link in download_links:
         download_and_install_from_url(link)
 
     # writing a current version
-    ver = check_version_online(mode)
     model_folders = get_model_folders(mode)
     for folder in model_folders:
         Path(folder, "VERSION").write_text(ver)
 
-def check_version_online(mode):
+def check_version_online(mode, repository_url = None):
+    if repository_url is None:
+        repository_url = get_repository_url()
     try:
-        r = requests.get("https://dl.dropboxusercontent.com/scl/fi/52sottxnxx9zcr6aogxgv/VERSION?rlkey=zutjwm63wcb5qr46x1bqlkf8u&e=1&st=bd5c5qtz&dl=0")
-        # r = requests.get("https://rodare.hzdr.de/record/4160/files/VERSION")
+        r = requests.get(repository_url + "/files/VERSION")
         version_file = r.content.decode("utf-8")
         j_file = json.loads(version_file)
         return j_file[mode]
     except Exception as e:
-        exit("Cannot reach the online model repository! Please check your internet connection or contact the developer.")
+        exit("Cannot find version info in the online model repository! Please contact the developer.")
 
 def check_version_local(mode):
     version_list = []
