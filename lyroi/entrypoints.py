@@ -22,8 +22,8 @@ def predict_petct_entrypoint():
     print("Input:", args.i)
     print("Output:", args.o)
     # import here to accelerate startup
-    from lyroi.inference import predict_from_folder
     setup_lyroi()
+    from lyroi.inference import predict_from_folder
 
     assert check_model(args.mode), ("Models for the selected mode of operation have not been installed yet!"
                                     "Run 'lyroi_install " + args.mode + " to download and install the models'")
