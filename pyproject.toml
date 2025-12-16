@@ -38,7 +38,10 @@ dependencies = [
     'torch>=2.1.2',
     'numpy',
     'acvl-utils==0.2',
-    'nnunetv2>=2.5.2'
+    'nnunetv2>=2.5.2',
+    'requests',
+    'nibabel',
+    'packaging'
 ]
 
 [project.urls]
