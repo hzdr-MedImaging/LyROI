@@ -1,3 +1,4 @@
+import sys
 from pathlib import Path
 from packaging.version import Version
 from lyroi.utils import check_model, install_model, setup_lyroi, check_version_local, check_version_online
@@ -24,12 +25,15 @@ def predict_petct_entrypoint():
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
-    parser.add_argument('-i', type=str, required=True, metavar="INPUT",
-                        help='Input folder. Remember to use the correct channel specifiers for your files (_0000 for CT'
-                             'and _0001 for PET). '
+    parser.add_argument('-i', type=str, required=True, nargs='+', metavar="INPUT",
+                        help='Input folder or list of files.'
+                             'If input folder is specified, please use correct channel specifiers for your files '
+                             'according to nnU-Net conventions (_0000 for CT and _0001 for PET). '
+                             'If list of files is specified, provide first CT and then PET file. '
                              'Only .nii.gz files are supported.')
     parser.add_argument('-o', type=str, required=True, metavar="OUTPUT",
-                        help='Output folder. If it does not exist, it will be created. Predicted segmentations will '
+                        help='Output folder or file, depending on the input mode.'
+                             'For folder output, if folder does not exist, it will be created. Predicted segmentations will '
                              'have the same name as their source images but without the channel specifiers.')
     parser.add_argument('-m', '--mode', type=str, default='petct', choices=['petct'], metavar="MODE",
                         help='One of the supported modes of operation: petct (default)')
@@ -38,19 +42,38 @@ def predict_petct_entrypoint():
                              'To select specific gpu, execute "export CUDA_VISIBLE_DEVICES=..." before running LyROI')
 
     args = parser.parse_args()
-    print("Input:", args.i)
-    print("Output:", args.o)
+
+    is_dir_input = False
+    if all([Path(i).is_dir() for i in args.i]):
+        assert len(args.i) == 1, "Number of input directories > 1 is not supported"
+        is_dir_input = True
+    is_dir_output = len(Path(args.o).suffix) == 0
+
+    is_file_input = all([Path(i).is_file() for i in args.i])
+    is_file_output = len(Path(args.o).suffix) > 0
+
+    dir_mode = is_dir_input and is_dir_output
+    file_mode = is_file_input and is_file_output
+
+    if is_dir_input:
+        assert is_dir_output, "Output appears to be a file while input is a directory. Input and output types should match!"
+    if is_file_input:
+        assert is_file_output, "Output appears to be a directory while input is a file (list). Input and output types should match!"
+    assert dir_mode != file_mode, "Something is wrong with input/output specifications or inputs do not exist! Please use 'lyroi -h' for help"
+
     # import here to accelerate startup
     setup_lyroi()
-    from lyroi.inference import predict_from_folder
+    from lyroi.inference import predict_from_folder, predict_from_files
 
     assert check_model(args.mode), ("Models for the selected mode of operation have not been installed yet!"
                                     "Run 'lyroi_install " + args.mode + " to download and install the models'")
 
-    if not Path(args.o).exists():
+    if dir_mode:
         Path(args.o).mkdir(exist_ok=True, parents=True)
+        predict_from_folder(args.i[0], args.o, args.mode, device=args.device)
 
-    predict_from_folder(args.i, args.o, args.mode, device='gpu')
+    if file_mode:
+        predict_from_files(args.i, args.o, args.mode, device=args.device)
 
 
 def install_model_entrypoint():

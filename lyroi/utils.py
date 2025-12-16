@@ -1,6 +1,7 @@
 import json
 import os
 import requests
+import shutil
 
 from pathlib import Path
 
@@ -105,6 +106,9 @@ def check_model(mode):
         for fold in fold_list:
             status = status and Path(folder, "fold_" + str(fold), "checkpoint_final.pth").exists()
     return status
+
+def validate_extensions(file_list, expected_ext = ".nii.gz"):
+    return all([file.endswith(expected_ext) for file in file_list])
 
 def get_lyroi_dir():
     if 'LYROI_DIR' in os.environ:

@@ -2,9 +2,10 @@ import time
 import nibabel as nib
 import numpy as np
 
-from lyroi.utils import get_model_folders, get_folds, get_tmp_dir, get_suffixes
+from lyroi.utils import get_model_folders, get_folds, get_tmp_dir, get_suffixes, validate_extensions
 from lyroi.nnunet_interface import nnunet_predict, get_torch_device
 from pathlib import Path
+from shutil import move
 
 def merge_delineations(input_folders, output_folder, strategy="u", force = True):
     assert strategy in ["u", "i", "m"], "Invalid merging strategy"
@@ -28,7 +29,7 @@ def merge_delineations(input_folders, output_folder, strategy="u", force = True)
 
         if len(files_in) == 1:
             # no need to merge anything. Just move files
-            files_in[0].rename(file_out)
+            move(files_in[0], file_out)
         else:
             # okay, now we actually need to read files and save results
             imgs_in = [nib.load(file) for file in files_in]
@@ -60,6 +61,18 @@ def check_inputs(input_folder, mode):
         names = "\n".join(unpaired)
         exit("Cannot proceed, the following patients are missing either CT or PET:\n" + names)
 
+def transfer_input_files(input_files, target_folder, mode, pname = 'patient_001'):
+    suffixes = get_suffixes(mode)
+    n_channels = len(suffixes)
+    if len(input_files) != n_channels:
+        exit(f"Number of input files does not match the number of input channels for the selected mode ({n_channels})")
+    for input_file, suffix in zip(input_files, suffixes):
+        Path(target_folder, pname + suffix + ".nii.gz").symlink_to(input_file)
+
+def transfer_output_files(input_folder, output_file, pname = 'patient_001'):
+    Path(output_file).unlink(missing_ok=True)
+    move(Path(input_folder, pname + ".nii.gz"), output_file)
+
 def predict_from_folder(input_folder, output_folder, mode, device='gpu'):
     check_inputs(input_folder, mode)
 
@@ -89,4 +102,29 @@ def predict_from_folder(input_folder, output_folder, mode, device='gpu'):
             for file in tmp_subdir.iterdir():
                 file.unlink()
             tmp_subdir.rmdir()
+        tmp_rundir.rmdir()
+
+def predict_from_files(input_files, output_file, mode, device='gpu'):
+    validate_extensions(input_files + [output_file], ".nii.gz")
+
+    tmp_dir = get_tmp_dir()
+    tmp_rundir = Path(tmp_dir, str(time.time_ns()))
+    tmp_input_dir = Path(tmp_rundir, "input")
+    tmp_output_dir = Path(tmp_rundir, "output")
+    try:
+        tmp_input_dir.mkdir(exist_ok=True, parents=True)
+        tmp_output_dir.mkdir(exist_ok=True, parents=True)
+        transfer_input_files(input_files, tmp_input_dir, mode)
+        predict_from_folder(tmp_input_dir, tmp_output_dir, mode, device)
+        transfer_output_files(tmp_output_dir, output_file)
+    except Exception as e:
+        print("Execution halted: ", e.args[0])
+        raise e
+    finally:
+        for file in tmp_input_dir.iterdir():
+            file.unlink()
+        for file in tmp_output_dir.iterdir():
+            file.unlink()
+        tmp_input_dir.rmdir()
+        tmp_output_dir.rmdir()
         tmp_rundir.rmdir()
