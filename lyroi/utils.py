@@ -93,7 +93,10 @@ def check_version_local(mode):
     return uniques.pop()
 
 def check_model(mode):
-    folder_list = get_model_folders(mode)
+    try:
+        folder_list = get_model_folders(mode)
+    except Exception as e:
+        return False
     fold_list = get_folds(mode)
     status = True
     for folder in folder_list:
