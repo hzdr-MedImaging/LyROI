@@ -1,23 +1,42 @@
 from pathlib import Path
 from packaging.version import Version
-from lyroi.utils import check_model, install_model, check_setup, setup_lyroi, check_version_local, check_version_online
+from lyroi.utils import check_model, install_model, setup_lyroi, check_version_local, check_version_online
+from lyroi import __version__, __copyright__, __package__, __license__
 
 
 def predict_petct_entrypoint():
     import argparse
-    parser = argparse.ArgumentParser(description='Run lymphoma ROI prediction for the given input folder.')
-    parser.add_argument('-i', type=str, required=True,
+    parser = argparse.ArgumentParser(
+        prog = "lyroi",
+        description='Run lymphoma ROI prediction for the given input folder',
+        epilog=(
+            "Examples:\n"
+            "  Segment all volumes in input_dir and save results in output_dir using default mode and gpu device:\n"
+            "    lyroi -i input_dir -o output_dir\n\n"
+            "  Segment ct_img.nii.gz and pet_img.nii.gz volume pair and save results as mask.nii.gz using cpu device:\n"
+            "    lyroi -i ct_img.nii.gz pet_img.nii.gz -o mask.nii.gz -d cpu\n\n"
+            "Notes:\n"
+            "  This software is intended for research use only.\n"
+            "  It is not a medical device and must not be used for clinical decisions.\n\n"
+            f"{__package__} {__version__}\n"
+            f"{__copyright__}\n"
+            f"License: {__license__}; models are licensed separately"
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    parser.add_argument('-i', type=str, required=True, metavar="INPUT",
                         help='Input folder. Remember to use the correct channel specifiers for your files (_0000 for CT'
                              'and _0001 for PET). '
                              'Only .nii.gz files are supported.')
-    parser.add_argument('-o', type=str, required=True,
+    parser.add_argument('-o', type=str, required=True, metavar="OUTPUT",
                         help='Output folder. If it does not exist, it will be created. Predicted segmentations will '
                              'have the same name as their source images but without the channel specifiers.')
-    parser.add_argument('-m', '--mode', type=str, default='petct', choices=['petct'],
-                        help='One of the supported modes of operation. Default: petct')
-    parser.add_argument('-d', '--device', type=str, default='gpu', choices=['gpu', 'cpu', 'mps'],
-                        help='Computational device to use for prediction. Choose from gpu (default), cpu, and mps.'
+    parser.add_argument('-m', '--mode', type=str, default='petct', choices=['petct'], metavar="MODE",
+                        help='One of the supported modes of operation: petct (default)')
+    parser.add_argument('-d', '--device', type=str, default='gpu', choices=['gpu', 'cpu', 'mps'], metavar="DEVICE",
+                        help='Computational device to use for prediction. Choose from gpu (default), cpu, and mps. '
                              'To select specific gpu, execute "export CUDA_VISIBLE_DEVICES=..." before running LyROI')
+
     args = parser.parse_args()
     print("Input:", args.i)
     print("Output:", args.o)
@@ -38,13 +57,30 @@ def install_model_entrypoint():
     setup_lyroi()
 
     import argparse
-    parser = argparse.ArgumentParser(description='Install the models required for running LyROI in the selected mode')
-    parser.add_argument('mode', type=str, choices=['petct'],
-                        help='One of the supported modes of operation')
+    parser = argparse.ArgumentParser(
+        prog="lyroi_install",
+        description='Install the models required for running LyROI in the selected mode',
+        epilog=(
+            "Examples:\n"
+            "  Install the models for the default (petct) mode:\n"
+            "    lyroi_install\n\n"
+            "  Check if the models for petct mode are already installed and up to date:\n"
+            "    lyroi -c -m petct\n\n"
+            "Notes:\n"
+            "  This software is intended for research use only.\n"
+            "  It is not a medical device and must not be used for clinical decisions.\n\n"
+            f"{__package__} {__version__}\n"
+            f"{__copyright__}\n"
+            f"License: {__license__}; models are licensed separately"
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     parser.add_argument('-f', '--force', action='store_true', default=False, help="Force reinstall the"
                                                                                   "model even if it is already installed and up to date.")
     parser.add_argument('-c', '--check', action='store_true', default=False, help="Check if the models are"
                                                                                   "already installed. Does not run the installation process itself")
+    parser.add_argument('-m', '--mode', type=str, default='petct', choices=['petct'], metavar="MODE",
+                        help='Which mode of operation to install the models for: petct (default)')
     args = parser.parse_args()
     print("Selected mode:", args.mode)
     is_installed = check_model(args.mode)

@@ -5,6 +5,7 @@ description = "LyROI - nnU-Net-based Lymphoma Total Metabolic Tumor Volume Segme
 readme = "README.md"
 requires-python = ">=3.9"
 license = "Apache-2.0"
+license-files = ["LICENSE"]
 authors = [
     { name = "Pavel Nikulin", email = "p.nikulin@hzdr.de" },
     { name = "Jens Maus", email = "j.maus@hzdr.de" }
@@ -29,6 +30,7 @@ classifiers = [
     "Intended Audience :: Science/Research",
     "Intended Audience :: Healthcare Industry",
     "Programming Language :: Python :: 3",
+    "Operating System :: Unix",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
     "Topic :: Scientific/Engineering :: Image Recognition",
     "Topic :: Scientific/Engineering :: Medical Science Apps.",
