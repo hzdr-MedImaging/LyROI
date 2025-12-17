@@ -20,6 +20,13 @@ date_str = now_date.strftime("%Y") if creation_date.year == now_date.year else c
 __copyright__ = "Copyright (c) " + date_str + " " + author_str + ", www.hzdr.de"
 __license__ = meta.get("License-Expression")
 
+__legal__ = ("Notes:\n"
+            "  This software is intended for research use only.\n"
+            "  It is not a medical device and must not be used for clinical decisions.\n\n"
+            f"{__package__} {__version__}\n"
+            f"{__copyright__}\n"
+            f"License: {__license__}; models are licensed separately")
+
 def error_handler(exctype, value, traceback):
   print()
   print("Error:", value, file=sys.stderr)

@@ -2,7 +2,7 @@ import sys
 from pathlib import Path
 from packaging.version import Version
 from lyroi.utils import check_model, install_model, setup_lyroi, check_version_local, check_version_online
-from lyroi import __version__, __copyright__, __package__, __license__
+from lyroi import __legal__
 
 
 def predict_petct_entrypoint():
@@ -16,12 +16,7 @@ def predict_petct_entrypoint():
             "    lyroi -i input_dir -o output_dir\n\n"
             "  Segment ct_img.nii.gz and pet_img.nii.gz volume pair and save results as mask.nii.gz using cpu device:\n"
             "    lyroi -i ct_img.nii.gz pet_img.nii.gz -o mask.nii.gz -d cpu\n\n"
-            "Notes:\n"
-            "  This software is intended for research use only.\n"
-            "  It is not a medical device and must not be used for clinical decisions.\n\n"
-            f"{__package__} {__version__}\n"
-            f"{__copyright__}\n"
-            f"License: {__license__}; models are licensed separately"
+            f"{__legal__}"
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
@@ -89,12 +84,7 @@ def install_model_entrypoint():
             "    lyroi_install\n\n"
             "  Check if the models for petct mode are already installed and up to date:\n"
             "    lyroi -c -m petct\n\n"
-            "Notes:\n"
-            "  This software is intended for research use only.\n"
-            "  It is not a medical device and must not be used for clinical decisions.\n\n"
-            f"{__package__} {__version__}\n"
-            f"{__copyright__}\n"
-            f"License: {__license__}; models are licensed separately"
+            f"{__legal__}"
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
