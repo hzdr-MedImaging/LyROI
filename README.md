@@ -27,7 +27,7 @@ outputs via union operation) is recommended to maximize lesion detection sensiti
 
 The collection of the trained models can be found here:
 
-[<img src="https://rodare.hzdr.de/badge/DOI/10.14278/rodare.4160.svg?sanitize=true" alt="DOI: 10.14278/rodare.4160"/>](https://doi.org/10.14278/rodare.4160)
+[![DOI: 10.14278/rodare.4160](https://zenodo.org/badge/DOI/10.14278/rodare.4160.svg)](https://doi.org/10.14278/rodare.4160)
 
 List of available models:
 - `LyROI_Orig.zip`: regular U-Net
