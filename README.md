@@ -52,6 +52,9 @@ for the network training and agreeing to share the resulting models.
 > - [`pytorch`](https://pytorch.org/get-started/locally/) (>= 2.1.2)
 
 1. Install `python` and `pytorch` (see requirements list above).
+
+   **Note: As of now, torch >=2.9.0 leads to severe performance
+   reduction. Earlier versions are recommended.**
 2. Install `lyroi` as a package (recommended):
    ```
    pip install lyroi
