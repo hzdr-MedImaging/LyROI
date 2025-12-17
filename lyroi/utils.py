@@ -176,7 +176,7 @@ def check_setup():
 def setup_lyroi():
     lyroi_dir = get_lyroi_dir()
     if not Path(lyroi_dir).exists():
-        print("Creating LyROI directory:" + lyroi_dir)
+        print("Creating LyROI directory: " + lyroi_dir)
         Path(lyroi_dir).mkdir(exist_ok=True, parents=True)
 
     models_dir = get_models_dir()

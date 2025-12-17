@@ -20,10 +20,21 @@ models. Accurate contouring of each lesion was achieved by selecting the most ap
 algorithm, manually adjusting its settings, and performing manual corrections when necessary.
 
 Training and testing were performed following a 5-fold cross-validation scheme. Three configurations of the nnU-Net were
-used for training: [regular U-Net](https://rodare.hzdr.de/record/4177/files/LyROI_Orig.zip), [medium residual encoder U-Net](https://rodare.hzdr.de/record/4177/files/LyROI_ResM.zip) (8 GB GPU
-memory target), and [large residual encoder U-Net](https://rodare.hzdr.de/record/4177/files/LyROI_ResL.zip) (24 GB GPU memory target).
+used for training: regular U-Net, residual encoder U-Net (8 GB GPU memory target), and large residual encoder U-Net
+(24 GB GPU memory target).
 They can be installed as described below and used separately, however, their use in an ensemble (merging individual
 outputs via union operation) is recommended to maximize lesion detection sensitivity.
+
+The collection of the trained models can be found here:
+
+[![DOI](https://rodare.hzdr.de/badge/DOI/10.14278/rodare.4160.svg)](https://doi.org/10.14278/rodare.4160)
+
+List of available models:
+- `LyROI_Orig.zip`: regular U-Net
+- `LyROI_ResM.zip`: residual encoder U-Net (medium)
+- `LyROI_ResL.zip`: residual encoder U-Net (large)
+
+
 
 [Scripts](scripts/) subfolder
 provides example code snippets to execute the prediction with each model and merge the resulting delineations when using
@@ -83,8 +94,8 @@ for the network training and agreeing to share the resulting models.
       ```
       lyroi -i ct.nii.gz pet.nii.gz -o roi.nii.gz
       ```
-   Execution on a GPU-equipped workstation is recommended. In case if no GPU is available, use a flag `-d cpu` to force
-   run on a CPU (can be very slow).
+   Execution on a GPU-equipped workstation is highly recommended. In case if no GPU is available, use a flag `-d cpu` to force
+   run on CPU (can be **VERY** slow).
 
 ## Manual Installation and Use
 
@@ -108,7 +119,9 @@ for the network training and agreeing to share the resulting models.
 4. Prepare the input data according to the instructions [below](#data-format).
 5. Execute ``./predict.sh /path/to/your/folder/input_folder`` and wait for the process to complete. The resulting
    delineations can be found in ``input_folder/pred/`` subfolder. If you want to keep the outputs of the intermediate
-   networks, comment out the last line in [predict.sh](scripts/predict.sh)
+   networks, comment out the last line in [predict.sh](scripts/predict.sh). Execution on a GPU-equipped workstation is
+   highly recommended. In case if no GPU is available, add a flag `-device cpu` to `nnUNetv2_predict` calls within the
+   script (can be **VERY** slow).
 
 ## Data Format
 
