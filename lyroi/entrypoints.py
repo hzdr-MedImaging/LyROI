@@ -1,7 +1,8 @@
 import sys
 from pathlib import Path
 from packaging.version import Version
-from lyroi.utils import check_model, install_model, setup_lyroi, check_version_local, check_version_online
+from lyroi.utils import (check_model, install_model, setup_lyroi, check_version_local, check_version_online,
+                         yes_no_input, get_download_size, format_file_size)
 from lyroi import __legal__
 
 
@@ -11,11 +12,11 @@ def predict_petct_entrypoint():
         prog = "lyroi",
         description='Run lymphoma ROI prediction for the given input folder',
         epilog=(
-            "Examples:\n"
-            "  Segment all volumes in input_dir and save results in output_dir using default mode and gpu device:\n"
-            "    lyroi -i input_dir -o output_dir\n\n"
-            "  Segment ct_img.nii.gz and pet_img.nii.gz volume pair and save results as mask.nii.gz using cpu device:\n"
-            "    lyroi -i ct_img.nii.gz pet_img.nii.gz -o mask.nii.gz -d cpu\n\n"
+            "Examples:\n\n"
+            "Segment all volumes in input_dir and save results in output_dir using default mode and gpu device:\n"
+            "  lyroi -i input_dir -o output_dir\n\n"
+            "Segment ct_img.nii.gz and pet_img.nii.gz volume pair and save results as mask.nii.gz using cpu device:\n"
+            "  lyroi -i ct_img.nii.gz pet_img.nii.gz -o mask.nii.gz -d cpu\n\n"
             f"{__legal__}"
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter
@@ -60,8 +61,18 @@ def predict_petct_entrypoint():
     setup_lyroi()
     from lyroi.inference import predict_from_folder, predict_from_files
 
-    assert check_model(args.mode), ("Models for the selected mode of operation have not been installed yet!"
-                                    "Run 'lyroi_install " + args.mode + " to download and install the models'")
+    if not check_model(args.mode):
+        print("The model for the selected mode is not installed or installation is incomplete")
+        model_size = format_file_size(get_download_size(args.mode))
+        print(f"\nTo download and install the models later, use the following command:\n"
+              f"  lyroi_install -m {args.mode}\n\n"
+              f"Alternatively, you can install the model now. "
+              f"This action will require downloading {model_size} of data from the internet.")
+        yes_no_input("\nProceed with the download now", "Download is aborted and the model will not be installed")
+        install_model(args.mode)
+
+    assert check_model(args.mode), (f"Something went wrong and the model has not been correctly installed! "
+                                    f"Try 'lyroi_install -m {args.mode} -f' to force reinstall the model")
 
     if dir_mode:
         Path(args.o).mkdir(exist_ok=True, parents=True)
@@ -79,11 +90,11 @@ def install_model_entrypoint():
         prog="lyroi_install",
         description='Install the models required for running LyROI in the selected mode',
         epilog=(
-            "Examples:\n"
-            "  Install the models for the default (petct) mode:\n"
-            "    lyroi_install\n\n"
-            "  Check if the models for petct mode are already installed and up to date:\n"
-            "    lyroi -c -m petct\n\n"
+            "Examples:\n\n"
+            "Install the models for the default (petct) mode:\n"
+            "  lyroi_install\n\n"
+            "Check if the models for petct mode are already installed and up to date:\n"
+            "  lyroi -c -m petct\n\n"
             f"{__legal__}"
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter
@@ -92,11 +103,14 @@ def install_model_entrypoint():
                                                                                   "model even if it is already installed and up to date.")
     parser.add_argument('-c', '--check', action='store_true', default=False, help="Check if the models are"
                                                                                   "already installed. Does not run the installation process itself")
+    parser.add_argument('-y', '--yes', action='store_true', default=False, help="Skip the confirmation prompts")
     parser.add_argument('-m', '--mode', type=str, default='petct', choices=['petct'], metavar="MODE",
                         help='Which mode of operation to install the models for: petct (default)')
     args = parser.parse_args()
     print("Selected mode:", args.mode)
     is_installed = check_model(args.mode)
+
+    # check flag handling
     if args.check:
         if is_installed:
             try:
@@ -130,4 +144,8 @@ def install_model_entrypoint():
         print("The installed model is up to date ( version:", cur_version, "). Use flag -f to force reinstall the model.")
         return
 
+    if not args.yes:
+        model_size = format_file_size(get_download_size(args.mode))
+        print(f"This action will require downloading {model_size} of data from the internet")
+        yes_no_input("\nProceed", "Download is aborted and the model will not be installed")
     install_model(args.mode)

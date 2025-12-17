@@ -1,10 +1,35 @@
 import json
 import os
+import sys
+import math
 import requests
-import shutil
 
 from pathlib import Path
 
+
+def validate_extensions(file_list, expected_ext = ".nii.gz"):
+    return all([file.endswith(expected_ext) for file in file_list])
+
+def yes_no_input(prompt, no_message):
+    answer = input(prompt + " ([y]/n)? ")
+    if answer.lower() in ['y', 'yes', '']:
+        return
+    elif answer.lower() in ['n', 'no']:
+        print(no_message)
+        sys.exit(0)
+    else:
+        print("Incorrect input, try again")
+        yes_no_input(prompt, no_message)
+
+# taken from https://stackoverflow.com/questions/5194057/better-way-to-convert-file-sizes-in-python
+def format_file_size(size_bytes):
+   if size_bytes == 0:
+       return "0B"
+   size_name = ("B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB")
+   i = int(math.floor(math.log(size_bytes, 1024)))
+   p = math.pow(1024, i)
+   s = round(size_bytes / p, 2)
+   return "%s %s" % (s, size_name[i])
 
 def get_model_folders(mode):
     from nnunetv2.utilities.file_path_utilities import get_output_folder
@@ -45,20 +70,38 @@ def get_repository_url():
     except Exception as e:
         exit("Cannot reach the online model repository! Please check your internet connection or contact the developer.")
 
+def get_download_urls(mode, repository_url = None):
+    if repository_url is None:
+        repository_url = get_repository_url()
+
+    download_urls = []
+    if mode == 'petct':
+        download_urls.append(repository_url + "/files/LyROI_Orig.zip")
+        download_urls.append(repository_url + "/files/LyROI_ResM.zip")
+        download_urls.append(repository_url + "/files/LyROI_ResL.zip")
+    return download_urls
+
+def get_download_size(mode):
+    download_urls = get_download_urls(mode)
+    try:
+        size = 0
+        for url in download_urls:
+            r = requests.head(url)
+            size += int(r.headers['content-length'])
+        return size
+    except Exception as e:
+        exit("Cannot locate the model files! Please check your internet connection or contact the developer.")
+
 def install_model(mode):
     from nnunetv2.model_sharing.model_download import download_and_install_from_url
     repository_url = get_repository_url()
     ver = check_version_online(mode, repository_url)
 
-    download_links = []
-    if mode == 'petct':
-        download_links.append(repository_url + "/files/LyROI_Orig.zip")
-        download_links.append(repository_url + "/files/LyROI_ResM.zip")
-        download_links.append(repository_url + "/files/LyROI_ResL.zip")
-
     # downloading and installing
-    for link in download_links:
-        download_and_install_from_url(link)
+    download_urls = get_download_urls(mode, repository_url)
+    print("Wait until all downloads are finished")
+    for url in download_urls:
+        download_and_install_from_url(url)
 
     # writing a current version
     model_folders = get_model_folders(mode)
@@ -106,9 +149,6 @@ def check_model(mode):
         for fold in fold_list:
             status = status and Path(folder, "fold_" + str(fold), "checkpoint_final.pth").exists()
     return status
-
-def validate_extensions(file_list, expected_ext = ".nii.gz"):
-    return all([file.endswith(expected_ext) for file in file_list])
 
 def get_lyroi_dir():
     if 'LYROI_DIR' in os.environ:

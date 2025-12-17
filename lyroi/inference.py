@@ -103,6 +103,10 @@ def predict_from_folder(input_folder, output_folder, mode, device='gpu'):
                 file.unlink()
             tmp_subdir.rmdir()
         tmp_rundir.rmdir()
+        try:
+            tmp_dir.rmdir()
+        except Exception:
+            pass
 
 def predict_from_files(input_files, output_file, mode, device='gpu'):
     validate_extensions(input_files + [output_file], ".nii.gz")
@@ -128,3 +132,7 @@ def predict_from_files(input_files, output_file, mode, device='gpu'):
         tmp_input_dir.rmdir()
         tmp_output_dir.rmdir()
         tmp_rundir.rmdir()
+        try:
+            tmp_dir.rmdir()
+        except Exception:
+            pass
