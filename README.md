@@ -158,8 +158,7 @@ THE SOFTWARE AND MODELS ARE PROVIDED “AS IS”, WITHOUT ANY WARRANTY, EXPRESS 
 ## Licenses
 
 The **code** in this repository is licensed under **Apache-2.0** (see [`LICENSE`](LICENSE)).  
-The **model weights** are licensed **separately** (see [`MODEL_LICENSE.md`](MODEL_LICENSE.md)) because their terms depend on the training
-data’s rights.
+The **model weights** are licensed under **CC-BY-SA-4.0** (see [`MODEL_LICENSE.md`](MODEL_LICENSE.md)).
 
 ## Third-Party Licenses
 
