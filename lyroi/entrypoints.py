@@ -15,8 +15,8 @@ def predict_petct_entrypoint():
             "Examples:\n\n"
             "Segment all volumes in input_dir and save results in output_dir using default mode and gpu device:\n"
             "  lyroi -i input_dir -o output_dir\n\n"
-            "Segment ct_img.nii.gz and pet_img.nii.gz volume pair and save results as mask.nii.gz using cpu device:\n"
-            "  lyroi -i ct_img.nii.gz pet_img.nii.gz -o mask.nii.gz -d cpu\n\n"
+            "Segment ct_img.nii.gz and pet_img.nii.gz volume pair and save results as mask.nii.gz using cpu device at max power:\n"
+            "  lyroi -i ct_img.nii.gz pet_img.nii.gz -o mask.nii.gz -d cpu-max\n\n"
             f"{__legal__}"
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter
@@ -33,8 +33,10 @@ def predict_petct_entrypoint():
                              'have the same name as their source images but without the channel specifiers.')
     parser.add_argument('-m', '--mode', type=str, default='petct', choices=['petct'], metavar="MODE",
                         help='One of the supported modes of operation: petct (default)')
-    parser.add_argument('-d', '--device', type=str, default='gpu', choices=['gpu', 'cpu', 'mps'], metavar="DEVICE",
-                        help='Computational device to use for prediction. Choose from gpu (default), cpu, and mps. '
+    parser.add_argument('-d', '--device', type=str, default='gpu', choices=['gpu', 'cpu', 'cpu-max', 'mps'], metavar="DEVICE",
+                        help='Computational device to use for prediction. Choose from gpu (default), cpu, cpu-max and mps. '
+                             '"cpu" will limit number of cores to 8 while "cpu-max" will use all available cores. "cpu-max" '
+                             'mode can be limited by setting "nnUNet_def_n_proc" env variable to desired number of cores. '
                              'To select specific gpu, execute "export CUDA_VISIBLE_DEVICES=..." before running LyROI')
 
     args = parser.parse_args()

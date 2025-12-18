@@ -43,7 +43,8 @@ dependencies = [
     'nnunetv2>=2.5.2',
     'requests',
     'nibabel',
-    'packaging'
+    'packaging',
+    'psutil'
 ]
 
 [project.urls]

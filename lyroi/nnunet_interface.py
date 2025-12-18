@@ -1,23 +1,24 @@
 # Parts taken and modified after https://github.com/MIC-DKFZ/nnUNet/
+import os
 
+import psutil
 import torch
 from nnunetv2.inference.predict_from_raw_data import nnUNetPredictor
 
 
 def get_torch_device(device='gpu'):
-    assert device in ['cpu', 'gpu',
-                      'mps'], f'-device must be either cpu, mps or cuda. Other devices are not tested/supported. Got: {device}.'
+    assert device in ['cpu', 'cpu-max', 'gpu',
+                      'mps'], f'-device must be either cpu, cpu-max, gpu or mps. Other devices are not tested/supported. Got: {device}'
     if device == 'cpu':
-        # let's allow torch to use hella threads
-        import multiprocessing
-        torch.set_num_threads(multiprocessing.cpu_count())
+        torch.set_num_threads(8)
         device = torch.device('cpu')
-    elif device == 'gpu':
-        # multithreading in torch doesn't help nnU-Net if run on GPU
+    if device == 'cpu-max':
+        torch.set_num_threads(psutil.cpu_count(logical=False))
+        device = torch.device('cpu')
+    if device == 'gpu':
         torch.set_num_threads(1)
-        torch.set_num_interop_threads(1)
         device = torch.device('cuda')
-    else:
+    if device == 'mps':
         device = torch.device('mps')
 
     return device

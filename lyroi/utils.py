@@ -3,6 +3,7 @@ import os
 import sys
 import math
 import requests
+import psutil
 
 from pathlib import Path
 
@@ -186,6 +187,17 @@ def setup_lyroi():
     os.environ['nnUNet_raw'] = ""
     os.environ['nnUNet_preprocessed'] = ""
     os.environ['nnUNet_results'] = models_dir # only this one matters
+    # some performance tweeks:
+    os.environ['nnUNet_def_n_proc'] =(
+        str(psutil.cpu_count(logical=False))) if 'nnUNet_def_n_proc' not in os.environ \
+        else int(os.environ['nnUNet_def_n_proc'])
+    os.environ['OMP_NUM_THREADS'] = str(psutil.cpu_count(logical=False))
+    os.environ['MKL_NUM_THREADS'] = str(psutil.cpu_count(logical=False))
+    os.environ['OMP_PROC_BIND'] = "close"
+    os.environ['OMP_PLACES'] = "cores"
+    os.environ['OMP_SCHEDULE'] = "static"
+    os.environ['GOMP_CPU_AFFINITY '] = "N-M"
+
 
 if __name__ == "__main__":
     setup_lyroi()

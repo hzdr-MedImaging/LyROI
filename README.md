@@ -95,7 +95,9 @@ for the network training and agreeing to share the resulting models.
       lyroi -i ct.nii.gz pet.nii.gz -o roi.nii.gz
       ```
    Execution on a GPU-equipped workstation is highly recommended. In case if no GPU is available, use a flag `-d cpu` to force
-   run on CPU (can be **VERY** slow).
+   run on CPU (can be **VERY** slow). Flag `-d cpu-max` can help with cpu performance by using all available
+   computational resources (may slow down other programs). `nnUNet_def_n_proc` environment variable can be set to limit
+   the number of utilized cpu cores in `cpu-max` mode.
 
 ## Manual Installation and Use
 
@@ -121,7 +123,8 @@ for the network training and agreeing to share the resulting models.
    delineations can be found in ``input_folder/pred/`` subfolder. If you want to keep the outputs of the intermediate
    networks, comment out the last line in [predict.sh](scripts/predict.sh). Execution on a GPU-equipped workstation is
    highly recommended. In case if no GPU is available, add a flag `-device cpu` to `nnUNetv2_predict` calls within the
-   script (can be **VERY** slow).
+   script (can be **VERY** slow). Set `nnUNet_def_n_proc` environment variable to specify the number of cpu cores to use
+   for inference (set to the number of physical cpu cores for max performance).
 
 ## Data Format
 
