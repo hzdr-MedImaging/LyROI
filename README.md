@@ -1,4 +1,4 @@
-# LyROI – nnU-Net-based Lymphoma Total Metabolic Tumor Volume Segmentation
+# LyROI – nnU-Net-based Lymphoma Total Metabolic Tumor Volume Delineation
 
 > [!IMPORTANT]
 > **Regulatory status:** This software and the bundled model are intended **solely for research and development (R&D)**.
@@ -8,7 +8,7 @@
 ## Overview
 
 **Ly**mphoma **ROI** prediction framework (**LyROI**) is a collection of neural network models and support tools for
-metabolic tumor volume segmentation in (Non-Hodgkin) lymphoma patients in FDG-PET/CT images.
+metabolic tumor volume delineation in (Non-Hodgkin) lymphoma patients in FDG-PET/CT images.
 
 A comprehensive description of development and evaluation of the models is given in the respective [paper](DOI:XXX).
 Briefly, the models were trained with the [nnU-Net](https://github.com/MIC-DKFZ/nnUNet) software package. A total of
@@ -50,7 +50,7 @@ LyROI:
 XXX
 ```
 
-Special thanks to Prof. Dührsen for the access to the [PETAL](https://doi.org/10.1200/jco.2017.76.8093) trial dataset
+Special thanks to the PETAL study group for the access to the [PETAL](https://doi.org/10.1200/jco.2017.76.8093) trial dataset
 for the network training and agreeing to share the resulting models.
 
 ## Quick Start
@@ -152,7 +152,7 @@ input_folder
 
 ## Intended Purpose (Non-Medical)
 
-- The software is intended for **algorithmic research, benchmarking, and method exploration** in lymphoma segmentation.
+- The software is intended for **algorithmic research, benchmarking, and method exploration** in lymphoma delineation.
 - It is **not intended** to provide information for diagnostic or therapeutic purposes and **must not** be used in
   clinical workflows.
 - Do **not** deploy or advertise this software as a medical product or service.
