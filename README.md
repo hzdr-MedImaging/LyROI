@@ -1,4 +1,8 @@
 # LyROI – nnU-Net-based Lymphoma Total Metabolic Tumor Volume Delineation
+[![PyPI version](https://badge.fury.io/py/lyroi.svg)](https://pypi.org/project/lyroi/)
+[![DOI: 10.14278/rodare.4160](https://zenodo.org/badge/DOI/10.14278/rodare.4160.svg)](https://doi.org/10.14278/rodare.4160)
+[![Software License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://github.com/hzdr-MedImaging/LyROI/blob/master/LICENSE)
+[![Model License](https://img.shields.io/badge/License-CC_BY--SA_4.0-lightgrey.svg)](https://github.com/hzdr-MedImaging/LyROI/blob/master/MODEL_LICENSE.md)
 
 > [!IMPORTANT]
 > **Regulatory status:** This software and the bundled model are intended **solely for research and development (R&D)**.
