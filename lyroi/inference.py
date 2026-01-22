@@ -115,7 +115,7 @@ def predict_from_folder(input_folder, output_folder, mode, device='gpu'):
         #     p.join()
         print("Merging delineations...")
         merge_delineations(tmp_subdirs, output_folder)
-        print("Execution time: %s seconds " % (time.time() - start_time))
+        print("Execution time: %.1f seconds " % (time.time() - start_time))
     except Exception as e:
         print("Execution halted: ", e.args[0])
         raise e
