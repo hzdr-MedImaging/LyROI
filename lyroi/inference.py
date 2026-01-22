@@ -84,6 +84,7 @@ def predict_from_folder(input_folder, output_folder, mode, device='gpu'):
 
     print("Starting predictions. Wait until all models finish prediction to see the results")
     torch_device = get_torch_device(device)
+    start_time = time.time()
     try:
         counter = 0
         for folder in model_folders:
@@ -92,8 +93,29 @@ def predict_from_folder(input_folder, output_folder, mode, device='gpu'):
             tmp_subdir = Path(tmp_rundir, Path(folder).stem)
             tmp_subdirs.append(tmp_subdir)
             nnunet_predict(input_folder, tmp_subdir, folder, folds, torch_device)
+
+        # import multiprocessing as mp
+        # mp.set_start_method("spawn", force=True)
+        #
+        # procs = []
+        # for i, folder in enumerate(model_folders):
+        #     if i > 0:
+        #         time.sleep(20)
+        #     tmp_subdir = Path(tmp_rundir, Path(folder).stem)
+        #     tmp_subdirs.append(tmp_subdir)
+        #     p = mp.Process(
+        #         target=nnunet_predict,
+        #         args=(input_folder, tmp_subdir, folder, folds, torch_device)
+        #     )
+        #     p.start()
+        #     procs.append(p)
+        #
+        #
+        # for p in procs:
+        #     p.join()
         print("Merging delineations...")
         merge_delineations(tmp_subdirs, output_folder)
+        print("Execution time: %s seconds " % (time.time() - start_time))
     except Exception as e:
         print("Execution halted: ", e.args[0])
         raise e
