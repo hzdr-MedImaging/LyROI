@@ -8,6 +8,17 @@ import psutil
 from pathlib import Path
 
 
+def format_time(seconds):
+    minutes, seconds = divmod(seconds, 60)
+    hours, minutes = divmod(minutes, 60)
+    str_time = "%.3f s" % seconds
+    if minutes > 0:
+        str_time = "%d min " % minutes + str_time
+    if hours > 0:
+        str_time = "%d h " % hours + str_time
+    return str_time
+
+
 def validate_extensions(file_list, expected_ext = ".nii.gz"):
     return all([file.endswith(expected_ext) for file in file_list])
 
