@@ -1,6 +1,6 @@
 [project]
 name = "lyroi"
-version = "0.1.1"
+version = "0.1.2"
 description = "LyROI - nnU-Net-based Lymphoma Total Metabolic Tumor Volume Segmentation"
 readme = "README.md"
 requires-python = ">=3.9"
