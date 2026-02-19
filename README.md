@@ -61,6 +61,9 @@ for the network training and agreeing to share the resulting models.
 
 > [!IMPORTANT]
 > Working within a dedicated virtual environment (`venv` or `conda`) is highly recommended.
+> 
+> The exact instructions below are written for Linux operating system.
+> You may need to adjust them slightly for setup in Windows. 
 
 > **Requirements**
 > - `python` (>= 3.9)
@@ -68,7 +71,7 @@ for the network training and agreeing to share the resulting models.
 
 1. Install `python` and `pytorch` (see requirements list above).
 
-   **Note: As of now, torch >=2.9.0 leads to severe performance
+   **Note: As of now, torch >=2.9.0 may lead to severe performance
    reduction. Earlier versions are recommended.**
 2. Install `lyroi` as a package (recommended):
    ```

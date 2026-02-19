@@ -1,4 +1,3 @@
-import sys
 from pathlib import Path
 from packaging.version import Version
 from lyroi.utils import (check_model, install_model, setup_lyroi, check_version_local, check_version_online,

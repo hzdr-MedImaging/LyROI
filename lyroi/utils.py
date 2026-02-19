@@ -195,8 +195,8 @@ def setup_lyroi():
     if not Path(models_dir).exists():
         Path(models_dir).mkdir(exist_ok=True, parents=True)
 
-    os.environ['nnUNet_raw'] = ""
-    os.environ['nnUNet_preprocessed'] = ""
+    os.environ['nnUNet_raw'] = models_dir
+    os.environ['nnUNet_preprocessed'] = models_dir
     os.environ['nnUNet_results'] = models_dir # only this one matters
     # some performance tweeks:
     os.environ['nnUNet_def_n_proc'] =(
