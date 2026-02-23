@@ -43,6 +43,13 @@ def format_file_size(size_bytes):
    s = round(size_bytes / p, 2)
    return "%s %s" % (s, size_name[i])
 
+def get_model_dict():
+    models = {
+        "petct": "PET/CT",
+        "pet": "PET"
+    }
+    return models
+
 def get_model_folders(mode):
     from nnunetv2.utilities.file_path_utilities import get_output_folder
     folder_list = []
@@ -152,6 +159,8 @@ def check_model(mode):
     try:
         folder_list = get_model_folders(mode)
     except Exception as e:
+        return False
+    if len(folder_list) == 0:
         return False
     fold_list = get_folds(mode)
     status = True
