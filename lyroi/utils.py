@@ -45,8 +45,7 @@ def format_file_size(size_bytes):
 
 def get_model_dict():
     models = {
-        "petct": "PET/CT",
-        "pet": "PET"
+        "petct": "PET/CT"
     }
     return models
 
@@ -210,7 +209,7 @@ def setup_lyroi():
     # some performance tweeks:
     os.environ['nnUNet_def_n_proc'] =(
         str(psutil.cpu_count(logical=False))) if 'nnUNet_def_n_proc' not in os.environ \
-        else int(os.environ['nnUNet_def_n_proc'])
+        else str(os.environ['nnUNet_def_n_proc'])
     os.environ['OMP_NUM_THREADS'] = str(psutil.cpu_count(logical=False))
     os.environ['MKL_NUM_THREADS'] = str(psutil.cpu_count(logical=False))
     os.environ['OMP_PROC_BIND'] = "close"
