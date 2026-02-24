@@ -8,7 +8,8 @@ class ModeInfo:
                  model_plans: List[str],
                  model_config: str,
                  suffixes: Dict[str, str],
-                 archive_names: List[str]):
+                 archive_names: List[str],
+                 default = False):
         self.name = name
         self.pretty_name = pretty_name
         self.folds = folds
@@ -16,6 +17,7 @@ class ModeInfo:
         self.model_plans = model_plans
         self.model_config = model_config
         self.archive_names = archive_names
+        self.default = default
 
 # Full info about all operation modes
 mode_list = {
@@ -27,13 +29,22 @@ mode_list = {
         model_config="3d_fullres",
         suffixes={"CT": "_0000",
                   "PET": "_0001"},
-        archive_names=["LyROI_Orig.zip", "LyROI_ResM.zip", "LyROI_ResL.zip"]
+        archive_names=["LyROI_Orig.zip", "LyROI_ResM.zip", "LyROI_ResL.zip"],
+        default=True
     )
 }
 
 #Helper function to get the pieces of the mode info
 def get_mode_list() -> List[str]:
     return list(mode_list.keys())
+
+#Only the first occurrence of default tag will be returned
+def get_default_mode() -> str:
+    for mode in mode_list:
+        if mode_list[mode].default:
+            return mode
+    return ""
+
 
 def get_pretty_name(mode: str) -> str:
     return mode_list[mode].pretty_name

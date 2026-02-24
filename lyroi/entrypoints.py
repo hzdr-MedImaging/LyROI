@@ -2,10 +2,16 @@ from pathlib import Path
 from packaging.version import Version
 from lyroi.utils import (check_model, install_model, setup_lyroi, check_version_local, check_version_online,
                          yes_no_input, get_download_size, format_file_size)
+from lyroi.modes import get_mode_list, get_default_mode
 from lyroi import __legal__
 
 
-def predict_petct_entrypoint():
+def predict_entrypoint():
+    default_mode = get_default_mode()
+    all_modes = get_mode_list()
+    mode_str = [mode + (" (default)" if mode == default_mode else "") for mode in all_modes]
+    mode_str = ", ".join(mode_str)
+
     import argparse
     parser = argparse.ArgumentParser(
         prog = "lyroi",
@@ -30,8 +36,8 @@ def predict_petct_entrypoint():
                         help='Output folder or file, depending on the input mode.'
                              'For folder output, if folder does not exist, it will be created. Predicted segmentations will '
                              'have the same name as their source images but without the channel specifiers.')
-    parser.add_argument('-m', '--mode', type=str, default='petct', choices=['petct'], metavar="MODE",
-                        help='One of the supported modes of operation: petct (default)')
+    parser.add_argument('-m', '--mode', type=str, default=default_mode, choices=all_modes, metavar="MODE",
+                        help='One of the supported modes of operation: ' + mode_str)
     parser.add_argument('-d', '--device', type=str, default='gpu', choices=['gpu', 'cpu', 'cpu-max', 'mps'], metavar="DEVICE",
                         help='Computational device to use for prediction. Choose from gpu (default), cpu, cpu-max and mps. '
                              '"cpu" will limit number of cores to 8 while "cpu-max" will use all available cores. "cpu-max" '
@@ -86,15 +92,20 @@ def predict_petct_entrypoint():
 def install_model_entrypoint():
     setup_lyroi()
 
+    default_mode = get_default_mode()
+    all_modes = get_mode_list()
+    mode_str = [mode + (" (default)" if mode == default_mode else "") for mode in all_modes]
+    mode_str = ", ".join(mode_str)
+
     import argparse
     parser = argparse.ArgumentParser(
         prog="lyroi_install",
         description='Install the models required for running LyROI in the selected mode',
         epilog=(
             "Examples:\n\n"
-            "Install the models for the default (petct) mode:\n"
+            "Install the models for the default (" + default_mode + ") mode:\n"
             "  lyroi_install\n\n"
-            "Check if the models for petct mode are already installed and up to date:\n"
+            "Check if the models for \"petct\" mode are already installed and up to date:\n"
             "  lyroi -c -m petct\n\n"
             f"{__legal__}"
         ),
@@ -105,8 +116,8 @@ def install_model_entrypoint():
     parser.add_argument('-c', '--check', action='store_true', default=False, help="Check if the models are"
                                                                                   "already installed. Does not run the installation process itself")
     parser.add_argument('-y', '--yes', action='store_true', default=False, help="Skip the confirmation prompts")
-    parser.add_argument('-m', '--mode', type=str, default='petct', choices=['petct'], metavar="MODE",
-                        help='Which mode of operation to install the models for: petct (default)')
+    parser.add_argument('-m', '--mode', type=str, default=default_mode, choices=all_modes, metavar="MODE",
+                        help='Which mode of operation to install the models for: ' + mode_str)
     args = parser.parse_args()
     print("Selected mode:", args.mode)
     is_installed = check_model(args.mode)
