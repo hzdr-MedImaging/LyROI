@@ -56,6 +56,7 @@ Source = "https://github.com/hzdr-MedImaging/LyROI"
 [project.scripts]
 lyroi = "lyroi.entrypoints:predict_petct_entrypoint"
 lyroi_install = "lyroi.entrypoints:install_model_entrypoint"
+lyroi_gui = "lyroi.gui.start:main"
 
 [build-system]
 requires = ["setuptools>=67.8.0"]
