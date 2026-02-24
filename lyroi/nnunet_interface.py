@@ -1,6 +1,4 @@
 # Parts taken and modified after https://github.com/MIC-DKFZ/nnUNet/
-import os
-
 import psutil
 import torch
 from nnunetv2.inference.predict_from_raw_data import nnUNetPredictor

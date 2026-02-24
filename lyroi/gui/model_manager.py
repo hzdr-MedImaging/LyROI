@@ -1,16 +1,15 @@
 import subprocess
-from lyroi.utils import check_version_local, check_version_online, check_model, get_model_dict
+from lyroi.utils import check_version_local, check_version_online, check_model
+from lyroi.modes import get_mode_list, get_pretty_name
 
 
 class ModelManager:
 
     def get_available_models(self):
-        models = get_model_dict()
-        return list(models.keys())
+        return get_mode_list()
 
     def get_pretty_name(self, model):
-        models = get_model_dict()
-        return models[model]
+        return get_pretty_name(model)
 
     def get_installed_version(self, model):
         if not check_model(model):

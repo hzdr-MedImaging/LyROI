@@ -6,6 +6,7 @@ import requests
 import psutil
 
 from pathlib import Path
+from lyroi.modes import get_model_folders, get_folds, get_archive_names
 
 
 def format_time(seconds):
@@ -17,7 +18,6 @@ def format_time(seconds):
     if hours > 0:
         str_time = "%d h " % hours + str_time
     return str_time
-
 
 def validate_extensions(file_list, expected_ext = ".nii.gz"):
     return all([file.endswith(expected_ext) for file in file_list])
@@ -43,43 +43,6 @@ def format_file_size(size_bytes):
    s = round(size_bytes / p, 2)
    return "%s %s" % (s, size_name[i])
 
-def get_model_dict():
-    models = {
-        "petct": "PET/CT"
-    }
-    return models
-
-def get_model_folders(mode):
-    from nnunetv2.utilities.file_path_utilities import get_output_folder
-    folder_list = []
-    if mode == 'petct':
-        folder_list.append(
-            get_output_folder(1, 'nnUNetTrainer', 'nnUNetPlans', '3d_fullres')
-        )
-        folder_list.append(
-            get_output_folder(1, 'nnUNetTrainer', 'nnUNetResEncUNetMPlans', '3d_fullres')
-        )
-        folder_list.append(
-            get_output_folder(1, 'nnUNetTrainer', 'nnUNetResEncUNetLPlans', '3d_fullres')
-        )
-    return folder_list
-
-def get_folds(mode):
-    folds = []
-    if mode == 'petct':
-        folds = [0, 1, 2, 3, 4]
-    if mode == 'petct_turbo':
-        folds = ['all']
-    return folds
-
-def get_suffixes(mode):
-    suffixes = []
-    if mode == 'petct':
-        suffixes = ['_0000', '_0001']
-    if mode == 'petct_turbo':
-        suffixes = ['_0000', '_0001']
-    return suffixes
-
 def get_repository_url():
     try:
         # collection of sources. Should automatically resolve to the latest versions of the models
@@ -92,11 +55,7 @@ def get_download_urls(mode, repository_url = None):
     if repository_url is None:
         repository_url = get_repository_url()
 
-    download_urls = []
-    if mode == 'petct':
-        download_urls.append(repository_url + "/files/LyROI_Orig.zip")
-        download_urls.append(repository_url + "/files/LyROI_ResM.zip")
-        download_urls.append(repository_url + "/files/LyROI_ResL.zip")
+    download_urls = [repository_url + "/files/" + archive_name for archive_name in get_archive_names(mode)]
     return download_urls
 
 def get_download_size(mode):

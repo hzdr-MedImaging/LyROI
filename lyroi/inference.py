@@ -2,7 +2,8 @@ import time
 import nibabel as nib
 import numpy as np
 
-from lyroi.utils import get_model_folders, get_folds, get_tmp_dir, get_suffixes, validate_extensions, format_time
+from lyroi.utils import  get_tmp_dir, validate_extensions, format_time
+from lyroi.modes import get_model_folders, get_folds, get_suffixes
 from lyroi.nnunet_interface import nnunet_predict, get_torch_device
 from pathlib import Path
 from shutil import move
