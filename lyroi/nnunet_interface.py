@@ -21,7 +21,7 @@ def get_torch_device(device='gpu'):
 
     return device
 
-def nnunet_predict(input_folder, output_folder, model_folder, folds, torch_device):
+def nnunet_predict(input_folder, output_folder, model_folder, folds, torch_device, progress_bar = True):
     predictor = nnUNetPredictor(tile_step_size=0.5,
                                 use_gaussian=True,
                                 use_mirroring=True,
@@ -29,7 +29,7 @@ def nnunet_predict(input_folder, output_folder, model_folder, folds, torch_devic
                                 device=torch_device,
                                 verbose=False,
                                 verbose_preprocessing=False,
-                                allow_tqdm=True)
+                                allow_tqdm=progress_bar)
 
     predictor.initialize_from_trained_model_folder(
         model_folder,

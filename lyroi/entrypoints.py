@@ -43,6 +43,8 @@ def predict_entrypoint():
                              '"cpu" will limit number of cores to 8 while "cpu-max" will use all available cores. "cpu-max" '
                              'mode can be limited by setting "nnUNet_def_n_proc" env variable to desired number of cores. '
                              'To select specific gpu, execute "export CUDA_VISIBLE_DEVICES=..." before running LyROI')
+    parser.add_argument('-np', '--no_progress_bar', action='store_true', default=False,
+                        help="Disable progress bar")
 
     args = parser.parse_args()
 
@@ -83,10 +85,10 @@ def predict_entrypoint():
 
     if dir_mode:
         Path(args.o).mkdir(exist_ok=True, parents=True)
-        predict_from_folder(args.i[0], args.o, args.mode, device=args.device)
+        predict_from_folder(args.i[0], args.o, args.mode, device=args.device, progress_bar=not args.no_progress_bar)
 
     if file_mode:
-        predict_from_files(args.i, args.o, args.mode, device=args.device)
+        predict_from_files(args.i, args.o, args.mode, device=args.device, progress_bar=not args.no_progress_bar)
 
 
 def install_model_entrypoint():

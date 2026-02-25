@@ -74,7 +74,7 @@ def transfer_output_files(input_folder, output_file, pname = 'patient_001'):
     Path(output_file).unlink(missing_ok=True)
     move(Path(input_folder, pname + ".nii.gz"), output_file)
 
-def predict_from_folder(input_folder, output_folder, mode, device='gpu'):
+def predict_from_folder(input_folder, output_folder, mode, device='gpu', progress_bar=True):
     check_inputs(input_folder, mode)
 
     model_folders = get_model_folders(mode)
@@ -93,7 +93,7 @@ def predict_from_folder(input_folder, output_folder, mode, device='gpu'):
             print(f"Predicting with model {counter}/{len(model_folders)}")
             tmp_subdir = Path(tmp_rundir, Path(folder).stem)
             tmp_subdirs.append(tmp_subdir)
-            nnunet_predict(input_folder, tmp_subdir, folder, folds, torch_device)
+            nnunet_predict(input_folder, tmp_subdir, folder, folds, torch_device, progress_bar=progress_bar)
 
         # import multiprocessing as mp
         # mp.set_start_method("spawn", force=True)
@@ -131,7 +131,7 @@ def predict_from_folder(input_folder, output_folder, mode, device='gpu'):
         except Exception:
             pass
 
-def predict_from_files(input_files, output_file, mode, device='gpu'):
+def predict_from_files(input_files, output_file, mode, device='gpu', progress_bar=True):
     validate_extensions(input_files + [output_file], ".nii.gz")
 
     tmp_dir = get_tmp_dir()
@@ -142,7 +142,7 @@ def predict_from_files(input_files, output_file, mode, device='gpu'):
         tmp_input_dir.mkdir(exist_ok=True, parents=True)
         tmp_output_dir.mkdir(exist_ok=True, parents=True)
         transfer_input_files(input_files, tmp_input_dir, mode)
-        predict_from_folder(tmp_input_dir, tmp_output_dir, mode, device)
+        predict_from_folder(tmp_input_dir, tmp_output_dir, mode, device, progress_bar=progress_bar)
         transfer_output_files(tmp_output_dir, output_file)
     except Exception as e:
         print("Execution halted: ", e.args[0])
