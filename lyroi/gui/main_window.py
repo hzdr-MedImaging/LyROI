@@ -1,16 +1,16 @@
 import pathlib
+import re
 
 from PyQt5.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QPushButton, QLabel, QLineEdit, QTextEdit,
     QFileDialog, QComboBox, QRadioButton, QGroupBox,
-    QMessageBox
+    QMessageBox, QProgressBar
 )
 
 from lyroi.gui.worker import CommandWorker
 from lyroi.gui.model_manager import ModelManager
 from lyroi.gui.settings import Settings
-
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -38,8 +38,8 @@ class MainWindow(QMainWindow):
         mode_group = QGroupBox("Mode")
         mode_layout = QHBoxLayout()
 
-        self.radio_batch = QRadioButton("Batch (Input/Output Directories)")
-        self.radio_single = QRadioButton("Single Case (PET + CT Files)")
+        self.radio_batch = QRadioButton("Batch")
+        self.radio_single = QRadioButton("Single Case")
         self.radio_batch.setChecked(True)
 
         self.radio_batch.toggled.connect(self.update_mode_visibility)
@@ -67,13 +67,13 @@ class MainWindow(QMainWindow):
         self.single_group = QGroupBox("Single Case Processing")
         single_layout = QVBoxLayout()
 
-        self.pet_file = self.make_path_selector("PET File", False)
         self.ct_file = self.make_path_selector("CT File", False)
+        self.pet_file = self.make_path_selector("PET File", False)
         self.single_output_dir = self.make_path_selector("Output Directory", True)
 
         self.output_filename = QLineEdit()
-        single_layout.addLayout(self.pet_file)
         single_layout.addLayout(self.ct_file)
+        single_layout.addLayout(self.pet_file)
         single_layout.addLayout(self.single_output_dir)
         single_layout.addWidget(QLabel("Output Filename"))
         single_layout.addWidget(self.output_filename)
@@ -109,12 +109,18 @@ class MainWindow(QMainWindow):
         run_layout = QHBoxLayout()
         self.btn_run = QPushButton("Run")
         self.btn_stop = QPushButton("Stop")
+        self.progress_label = QLabel("Intermediate progress")
+        self.progress_bar = QProgressBar()
+        self.progress_bar.setRange(0, 100)
+        self.progress_bar.setValue(0)
 
-        self.btn_run.clicked.connect(self.run_command)
+        self.btn_run.clicked.connect(self.start_prediction)
         self.btn_stop.clicked.connect(self.stop_command)
 
         run_layout.addWidget(self.btn_run)
         run_layout.addWidget(self.btn_stop)
+        run_layout.addWidget(self.progress_label)
+        run_layout.addWidget(self.progress_bar)
 
         layout.addLayout(run_layout)
 
@@ -180,12 +186,18 @@ class MainWindow(QMainWindow):
 
     # ---------------- Run Logic ---------------- #
 
-    def run_command(self):
+    def start_prediction(self):
         model = self.model_dropdown.currentData()
+
+        self.console.clear()
+        self.console.append("Starting prediction with model " + model + "\n")
 
         if self.radio_batch.isChecked():
             input_dir = self.batch_input.line_edit.text()
             output_dir = self.batch_output.line_edit.text()
+
+            self.console.append("Input directory:\n" + input_dir + "\n")
+            self.console.append("Output directory:\n" + output_dir + "\n")
 
             cmd = [
                 "lyroi",
@@ -199,15 +211,18 @@ class MainWindow(QMainWindow):
             ct = self.ct_file.line_edit.text()
             out_dir = self.single_output_dir.line_edit.text()
             filename = self.output_filename.text()
+            output_file = pathlib.Path(out_dir, filename)
+
+            self.console.append("Input files:\n" + "CT: " + ct + "\n" + "PET: " + pet + "\n")
+            self.console.append("Output file:\n" + str(output_file) + "\n")
 
             cmd = [
                 "lyroi",
                 "-i", ct, pet,
-                "-o", pathlib.Path(out_dir, filename),
+                "-o", output_file,
                 "--mode", model
             ]
 
-        self.console.clear()
         self.worker = CommandWorker(cmd)
         self.connect_worker()
         self.worker.start()
@@ -221,3 +236,4 @@ class MainWindow(QMainWindow):
         self.worker.finished_signal.connect(
             lambda: self.console.append("\nFinished.\n")
         )
+        self.worker.progress_signal.connect(self.progress_bar.setValue)
