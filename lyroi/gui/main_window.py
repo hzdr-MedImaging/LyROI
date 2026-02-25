@@ -5,12 +5,31 @@ from PyQt5.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QPushButton, QLabel, QLineEdit, QTextEdit,
     QFileDialog, QComboBox, QRadioButton, QGroupBox,
-    QMessageBox, QProgressBar
+    QMessageBox, QProgressBar, QFormLayout, QGridLayout, QLayout
 )
 
 from lyroi.gui.worker import CommandWorker
 from lyroi.gui.model_manager import ModelManager
 from lyroi.gui.settings import Settings
+
+class FileSelector():
+    def __init__(self, parent: QWidget, label, directory, output = False):
+        self.label = QLabel(label)
+        self.line_edit = QLineEdit()
+        self.button = QPushButton("Browse")
+
+        def browse():
+            if directory:
+                path = QFileDialog.getExistingDirectory(parent, label)
+            else:
+                if output:
+                    path, _ = QFileDialog.getSaveFileName(parent, label, filter = "NIfTI files (*.nii.gz)")
+                else:
+                    path, _ = QFileDialog.getOpenFileName(parent, label, filter = "NIfTI files (*.nii.gz)")
+            if path:
+                self.line_edit.setText(path)
+
+        self.button.clicked.connect(browse)
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -28,6 +47,11 @@ class MainWindow(QMainWindow):
         self.load_models()
 
     # ---------------- UI ---------------- #
+    def add_file_selector(self, layout: QGridLayout, selector: FileSelector):
+        row = layout.rowCount()
+        layout.addWidget(selector.label, row, 0)
+        layout.addWidget(selector.line_edit, row, 1)
+        layout.addWidget(selector.button, row, 2)
 
     def init_ui(self):
         central = QWidget()
@@ -38,8 +62,8 @@ class MainWindow(QMainWindow):
         mode_group = QGroupBox("Mode")
         mode_layout = QHBoxLayout()
 
-        self.radio_batch = QRadioButton("Batch")
-        self.radio_single = QRadioButton("Single Case")
+        self.radio_batch = QRadioButton("Batch Processing")
+        self.radio_single = QRadioButton("Single Case Processing")
         self.radio_batch.setChecked(True)
 
         self.radio_batch.toggled.connect(self.update_mode_visibility)
@@ -51,32 +75,29 @@ class MainWindow(QMainWindow):
         layout.addWidget(mode_group)
 
         # -------- Batch Mode -------- #
-        self.batch_group = QGroupBox("Batch Processing")
-        batch_layout = QVBoxLayout()
+        self.batch_group = QGroupBox()
+        batch_layout = QGridLayout()
 
-        self.batch_input = self.make_path_selector("Input Directory", True)
-        self.batch_output = self.make_path_selector("Output Directory", True)
+        self.batch_input = FileSelector(self,"Input Directory", True)
+        self.batch_output = FileSelector(self,"Output Directory", True)
 
-        batch_layout.addLayout(self.batch_input)
-        batch_layout.addLayout(self.batch_output)
+        self.add_file_selector(batch_layout, self.batch_input)
+        self.add_file_selector(batch_layout, self.batch_output)
 
         self.batch_group.setLayout(batch_layout)
         layout.addWidget(self.batch_group)
 
         # -------- Single Mode -------- #
-        self.single_group = QGroupBox("Single Case Processing")
-        single_layout = QVBoxLayout()
+        self.single_group = QGroupBox()
+        single_layout = QGridLayout()
 
-        self.ct_file = self.make_path_selector("CT File", False)
-        self.pet_file = self.make_path_selector("PET File", False)
-        self.single_output_dir = self.make_path_selector("Output Directory", True)
+        self.ct_file = FileSelector(self,"CT File", False)
+        self.pet_file = FileSelector(self,"PET File", False)
+        self.output_file = FileSelector(self,"Output File", False, True)
 
-        self.output_filename = QLineEdit()
-        single_layout.addLayout(self.ct_file)
-        single_layout.addLayout(self.pet_file)
-        single_layout.addLayout(self.single_output_dir)
-        single_layout.addWidget(QLabel("Output Filename"))
-        single_layout.addWidget(self.output_filename)
+        self.add_file_selector(single_layout, self.ct_file)
+        self.add_file_selector(single_layout, self.pet_file)
+        self.add_file_selector(single_layout, self.output_file)
 
         self.single_group.setLayout(single_layout)
         layout.addWidget(self.single_group)
@@ -96,7 +117,7 @@ class MainWindow(QMainWindow):
         self.model_dropdown.currentIndexChanged.connect(self.update_installed_version)
 
 
-        model_layout.addWidget(QLabel("Select Model"))
+        model_layout.addWidget(QLabel("Select Mode"))
         model_layout.addWidget(self.model_dropdown)
         model_layout.addWidget(self.model_version_label)
         model_layout.addWidget(self.btn_check_updates)
@@ -109,7 +130,7 @@ class MainWindow(QMainWindow):
         run_layout = QHBoxLayout()
         self.btn_run = QPushButton("Run")
         self.btn_stop = QPushButton("Stop")
-        self.progress_label = QLabel("Intermediate progress")
+        self.progress_label = QLabel("Current Task Progress")
         self.progress_bar = QProgressBar()
         self.progress_bar.setRange(0, 100)
         self.progress_bar.setValue(0)
@@ -133,26 +154,7 @@ class MainWindow(QMainWindow):
 
     # ---------------- Utilities ---------------- #
 
-    def make_path_selector(self, label, directory):
-        layout = QHBoxLayout()
-        line = QLineEdit()
-        btn = QPushButton("Browse")
 
-        def browse():
-            if directory:
-                path = QFileDialog.getExistingDirectory(self, label)
-            else:
-                path, _ = QFileDialog.getOpenFileName(self, label)
-            if path:
-                line.setText(path)
-
-        btn.clicked.connect(browse)
-
-        layout.addWidget(QLabel(label))
-        layout.addWidget(line)
-        layout.addWidget(btn)
-        layout.line_edit = line
-        return layout
 
     def update_mode_visibility(self):
         self.batch_group.setVisible(self.radio_batch.isChecked())
@@ -178,7 +180,8 @@ class MainWindow(QMainWindow):
 
     def install_model(self):
         model = self.model_dropdown.currentData()
-        self.console.append("Installing model " + model)
+        pretty_name = self.model_manager.get_pretty_name(model)
+        self.console.append("Installing models for " + pretty_name + " mode\n")
         self.worker = CommandWorker(
             ["lyroi_install", "--mode", model, "-y", "-f"])
         self.connect_worker()
@@ -209,9 +212,7 @@ class MainWindow(QMainWindow):
         else:
             pet = self.pet_file.line_edit.text()
             ct = self.ct_file.line_edit.text()
-            out_dir = self.single_output_dir.line_edit.text()
-            filename = self.output_filename.text()
-            output_file = pathlib.Path(out_dir, filename)
+            output_file = self.output_file.line_edit.text()
 
             self.console.append("Input files:\n" + "CT: " + ct + "\n" + "PET: " + pet + "\n")
             self.console.append("Output file:\n" + str(output_file) + "\n")

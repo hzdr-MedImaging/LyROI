@@ -42,6 +42,8 @@ class CommandWorker(QThread):
             percent = int(match.group(1))
             percent = (100 * self._current_fold + percent) / self.n_folds
             self.progress_signal.emit(round(percent))
+            if not self._in_tqdm:
+                self.output_signal.emit("Task in progress...\n")
             self._in_tqdm = True
             return  # DO NOT send tqdm lines to console
 
@@ -60,4 +62,5 @@ class CommandWorker(QThread):
     def stop(self):
         if self.process:
             self.process.terminate()
+        self.progress_signal.emit(0)
         self.output_signal.emit("Execution stopped")
