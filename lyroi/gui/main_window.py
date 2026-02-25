@@ -180,7 +180,7 @@ class MainWindow(QMainWindow):
         model = self.model_dropdown.currentData()
         self.console.append("Installing model " + model)
         self.worker = CommandWorker(
-            ["lyroi_install", "--mode", model, "-y"])
+            ["lyroi_install", "--mode", model, "-y", "-f"])
         self.connect_worker()
         self.worker.start()
 
@@ -223,7 +223,8 @@ class MainWindow(QMainWindow):
                 "--mode", model
             ]
 
-        self.worker = CommandWorker(cmd)
+        n_folds = self.model_manager.get_n_folds(model)
+        self.worker = CommandWorker(cmd, n_folds = n_folds)
         self.connect_worker()
         self.worker.start()
 
