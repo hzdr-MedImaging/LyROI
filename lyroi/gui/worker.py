@@ -1,3 +1,4 @@
+import os
 import re
 import subprocess
 from PyQt5.QtCore import QThread, pyqtSignal
@@ -21,13 +22,28 @@ class CommandWorker(QThread):
     def run(self):
         safe_command = [str(x) for x in self.command]
 
-        self.process = subprocess.Popen(
-            safe_command,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            universal_newlines=True,
-            creationflags=subprocess.CREATE_NO_WINDOW
-        )
+        try:
+            if os.name == "nt":
+            # Windows
+                self.process = subprocess.Popen(
+                    safe_command,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    universal_newlines=True,
+                    creationflags=subprocess.CREATE_NO_WINDOW | subprocess.CREATE_NEW_PROCESS_GROUP
+                )
+            else:
+            # UNIX
+                self.process = subprocess.Popen(
+                    safe_command,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    universal_newlines=True
+                )
+        except Exception as e:
+            self.output_signal.emit("Error: " + e.__str__())
+            self.finished_signal.emit()
+            return
 
         for line in self.process.stdout:
             self.handle_output(line.strip())
@@ -63,5 +79,5 @@ class CommandWorker(QThread):
     def stop(self):
         if self.process:
             self.process.terminate()
+            self.output_signal.emit("Execution stopped")
         self.progress_signal.emit(0)
-        self.output_signal.emit("Execution stopped")
