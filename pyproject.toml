@@ -45,7 +45,8 @@ dependencies = [
     'requests',
     'nibabel',
     'packaging',
-    'psutil'
+    'psutil',
+    'PyQt5'
 ]
 
 [project.urls]
