@@ -1,5 +1,6 @@
 import os
 import re
+import signal
 import subprocess
 from PyQt5.QtCore import QThread, pyqtSignal
 
@@ -21,25 +22,23 @@ class CommandWorker(QThread):
 
     def run(self):
         safe_command = [str(x) for x in self.command]
+        self.progress_signal.emit(0)
 
         try:
+            kwargs = {}
             if os.name == "nt":
-            # Windows
-                self.process = subprocess.Popen(
-                    safe_command,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.STDOUT,
-                    universal_newlines=True,
-                    creationflags=subprocess.CREATE_NO_WINDOW | subprocess.CREATE_NEW_PROCESS_GROUP
-                )
+                # Windows flags
+                kwargs['creationflags'] = subprocess.CREATE_NO_WINDOW | subprocess.CREATE_NEW_PROCESS_GROUP
             else:
-            # UNIX
-                self.process = subprocess.Popen(
-                    safe_command,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.STDOUT,
-                    universal_newlines=True
-                )
+                kwargs['preexec_fn'] = os.setsid
+
+            self.process = subprocess.Popen(
+                safe_command,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                universal_newlines=True,
+                **kwargs
+            )
         except Exception as e:
             self.output_signal.emit("Error: " + e.__str__())
             self.finished_signal.emit()
@@ -76,8 +75,27 @@ class CommandWorker(QThread):
         # everything else goes to console
         self.output_signal.emit(text)
 
+    def term_process(self):
+        if os.name == "nt":
+            # Windows
+            self.process.send_signal(signal.CTRL_BREAK_EVENT)
+        else:
+            # UNIX
+            os.killpg(os.getpgid(self.process.pid), signal.SIGTERM)
+
     def stop(self):
-        if self.process:
-            self.progress_signal.emit(0)
-            self.output_signal.emit("Stopping...")
-            self.process.terminate()
+        if not self.process:
+            return
+
+        if self.process.poll() is None: #check if already terminated
+            try:
+                self.term_process()
+                self.process.wait(1)
+            except subprocess.TimeoutExpired:
+                try:
+                    # try again
+                    self.term_process()
+                    self.process.wait(1)
+                except subprocess.TimeoutExpired:
+                    # if nothing else helps
+                    self.process.kill()

@@ -121,6 +121,7 @@ def predict_from_folder(input_folder, output_folder, mode, device='gpu', progres
         print("Execution halted: ", e.args[0])
         raise e
     finally:
+        print("Cleaning up...")
         for tmp_subdir in tmp_subdirs:
             for file in tmp_subdir.iterdir():
                 file.unlink()

@@ -53,6 +53,11 @@ class MainWindow(QMainWindow):
         layout.addWidget(selector.line_edit, row, 1)
         layout.addWidget(selector.button, row, 2)
 
+    def add_note(self, layout: QGridLayout, text: str):
+        row = layout.rowCount()
+        columns = layout.columnCount()
+        layout.addWidget(QLabel(text), row, 0, 1, columns)
+
     def init_ui(self):
         central = QWidget()
         self.setCentralWidget(central)
@@ -82,6 +87,7 @@ class MainWindow(QMainWindow):
         self.batch_output = FileSelector(self,"Output Directory", True)
 
         self.add_file_selector(batch_layout, self.batch_input)
+        #self.add_note(batch_layout, "Note: ")
         self.add_file_selector(batch_layout, self.batch_output)
 
         self.batch_group.setLayout(batch_layout)
@@ -231,11 +237,14 @@ class MainWindow(QMainWindow):
 
     def stop_command(self):
         if self.worker:
+            self.console.append("Stopping...")
             self.worker.stop()
+
+    def finish_handler(self):
+        self.worker = None
+        self.console.append("\nFinished.\n")
 
     def connect_worker(self):
         self.worker.output_signal.connect(self.console.append)
-        self.worker.finished_signal.connect(
-            lambda: self.console.append("\nFinished.\n")
-        )
+        self.worker.finished_signal.connect(self.finish_handler)
         self.worker.progress_signal.connect(self.progress_bar.setValue)
