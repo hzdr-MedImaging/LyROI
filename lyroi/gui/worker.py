@@ -25,7 +25,8 @@ class CommandWorker(QThread):
             safe_command,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
-            universal_newlines=True
+            universal_newlines=True,
+            creationflags=subprocess.CREATE_NO_WINDOW
         )
 
         for line in self.process.stdout:
