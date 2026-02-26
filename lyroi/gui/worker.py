@@ -78,6 +78,6 @@ class CommandWorker(QThread):
 
     def stop(self):
         if self.process:
+            self.progress_signal.emit(0)
+            self.output_signal.emit("Stopping...")
             self.process.terminate()
-            self.output_signal.emit("Execution stopped")
-        self.progress_signal.emit(0)
