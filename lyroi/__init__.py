@@ -37,5 +37,9 @@ def exit_handler(signal, frame):
   print("User abort (CTRL-C) received.")
   sys.exit(0)
 
+def terminate_handler(signal, frame):
+  sys.exit(0)
+
 signal.signal(signal.SIGINT, exit_handler)
+signal.signal(signal.SIGTERM, terminate_handler)
 sys.excepthook = error_handler
