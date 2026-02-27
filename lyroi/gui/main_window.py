@@ -157,14 +157,35 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.console)
 
         self.update_mode_visibility()
+        self.set_idle_state()
 
     # ---------------- Utilities ---------------- #
-
-
 
     def update_mode_visibility(self):
         self.batch_group.setVisible(self.radio_batch.isChecked())
         self.single_group.setVisible(self.radio_single.isChecked())
+
+    def set_active_state(self):
+        self.btn_run.setEnabled(False)
+        self.btn_stop.setEnabled(True)
+        self.progress_bar.setStyleSheet(
+            "QProgressBar {"
+            "    text-align: center;"
+            "}"
+        )
+
+    def set_idle_state(self):
+        self.btn_run.setEnabled(True)
+        self.btn_stop.setEnabled(False)
+        self.progress_bar.setStyleSheet(
+            "QProgressBar {"
+            "    text-align: center;"
+            "}"
+            "QProgressBar::chunk {"
+            "    background-color: #a9a9a9;" # Gray
+            "    border: 2px"
+            "}"
+        )
 
     # ---------------- Model Logic ---------------- #
 
@@ -234,6 +255,7 @@ class MainWindow(QMainWindow):
         self.worker = CommandWorker(cmd, n_folds = n_folds)
         self.connect_worker()
         self.worker.start()
+        self.set_active_state()
 
     def stop_command(self):
         if self.worker:
@@ -243,6 +265,7 @@ class MainWindow(QMainWindow):
     def finish_handler(self):
         self.worker = None
         self.console.append("\nFinished.\n")
+        self.set_idle_state()
 
     def connect_worker(self):
         self.worker.output_signal.connect(self.console.append)
