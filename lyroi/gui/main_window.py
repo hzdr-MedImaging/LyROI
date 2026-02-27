@@ -237,7 +237,7 @@ class MainWindow(QMainWindow):
 
     def stop_command(self):
         if self.worker:
-            self.console.append("Stopping...")
+            self.console.append("Stop requested")
             self.worker.stop()
 
     def finish_handler(self):

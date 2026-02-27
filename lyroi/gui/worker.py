@@ -2,7 +2,23 @@ import os
 import re
 import signal
 import subprocess
+import sys
+import time
+
 from PyQt5.QtCore import QThread, pyqtSignal
+
+
+# Only for Windows
+def send_ctrl_break(pid):
+    import ctypes
+    kernel32 = ctypes.WinDLL('kernel32')
+    kernel32.FreeConsole()
+    if kernel32.AttachConsole(pid):
+        kernel32.GenerateConsoleCtrlEvent(1, pid)
+        time.sleep(0.1)
+        kernel32.FreeConsole()
+        return True
+    return False
 
 
 class CommandWorker(QThread):
@@ -28,12 +44,22 @@ class CommandWorker(QThread):
             kwargs = {}
             if os.name == "nt":
                 # Windows flags
-                kwargs['creationflags'] = subprocess.CREATE_NO_WINDOW | subprocess.CREATE_NEW_PROCESS_GROUP
+                kwargs['creationflags'] = subprocess.CREATE_NEW_PROCESS_GROUP
+                #kwargs['creationflags'] |= subprocess.CREATE_NO_WINDOW
+                #kwargs['creationflags'] |= subprocess.DETACHED_PROCESS
+
+                # Use STARTUPINFO to hide the window instead of CREATE_NO_WINDOW
+                startupinfo = subprocess.STARTUPINFO()
+                startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+                startupinfo.wShowWindow = 0  # SW_HIDE
+                kwargs['startupinfo'] = startupinfo
+                kwargs['close_fds'] = True
             else:
                 kwargs['preexec_fn'] = os.setsid
 
             self.process = subprocess.Popen(
                 safe_command,
+                stdin=subprocess.DEVNULL,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 universal_newlines=True,
@@ -78,7 +104,12 @@ class CommandWorker(QThread):
     def term_process(self):
         if os.name == "nt":
             # Windows
-            self.process.send_signal(signal.CTRL_BREAK_EVENT)
+            if sys.executable.endswith("pythonw.exe"):
+                # pythonw does not have its own console, so we need to attach to a child's console
+                send_ctrl_break(self.process.pid)
+            else:
+                # Needed to avoid crashes with python interpreter
+                self.process.send_signal(signal.CTRL_BREAK_EVENT)
         else:
             # UNIX
             os.killpg(os.getpgid(self.process.pid), signal.SIGTERM)
@@ -90,12 +121,13 @@ class CommandWorker(QThread):
         if self.process.poll() is None: #check if already terminated
             try:
                 self.term_process()
-                self.process.wait(1)
+                self.process.wait(0.5)
             except subprocess.TimeoutExpired:
                 try:
                     # try again
                     self.term_process()
-                    self.process.wait(1)
+                    self.process.wait(0.5)
                 except subprocess.TimeoutExpired:
                     # if nothing else helps
+                    print("Force termination")
                     self.process.kill()
