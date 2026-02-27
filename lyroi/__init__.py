@@ -38,8 +38,10 @@ def exit_handler(signal, frame):
   sys.exit(0)
 
 def terminate_handler(signal, frame):
+  print("Terminating execution...")
   sys.exit(0)
 
 signal.signal(signal.SIGINT, exit_handler)
 signal.signal(signal.SIGTERM, terminate_handler)
+signal.signal(signal.SIGBREAK, terminate_handler) # Windows termination
 sys.excepthook = error_handler
