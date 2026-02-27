@@ -1,7 +1,7 @@
 from pathlib import Path
 from packaging.version import Version
 from lyroi.utils import (check_model, install_model, setup_lyroi, check_version_local, check_version_online,
-                         yes_no_input, get_download_size, format_file_size)
+                         yes_no_input, get_download_size, format_file_size, clean_temp_dir)
 from lyroi.modes import get_mode_list, get_default_mode
 from lyroi import __legal__
 
@@ -45,6 +45,8 @@ def predict_entrypoint():
                              'To select specific gpu, execute "export CUDA_VISIBLE_DEVICES=..." before running LyROI')
     parser.add_argument('-np', '--no_progress_bar', action='store_true', default=False,
                         help="Disable progress bar")
+    parser.add_argument('--cleanup', action='store_true', default=False,
+                        help="Do nothing, just clean temporary directory")
 
     args = parser.parse_args()
 
@@ -163,3 +165,18 @@ def install_model_entrypoint():
         print(f"This action will require downloading {model_size} of data from the internet")
         yes_no_input("\nProceed", "Download is aborted and the model will not be installed")
     install_model(args.mode)
+
+def cleanup_entrypoint():
+    import argparse
+    parser = argparse.ArgumentParser(
+        prog="lyroi_cleanup",
+        description='Clean up the temporary directory in case of abrupt termination',
+        epilog=(
+                f"{__legal__}"
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    args = parser.parse_args()
+
+    setup_lyroi()
+    clean_temp_dir()

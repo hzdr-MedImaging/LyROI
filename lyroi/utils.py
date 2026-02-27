@@ -1,5 +1,6 @@
 import json
 import os
+import shutil
 import sys
 import math
 import requests
@@ -140,6 +141,9 @@ def get_models_dir():
 
 def get_tmp_dir():
     return str(Path(get_lyroi_dir(), "tmp"))
+
+def clean_temp_dir():
+    shutil.rmtree(get_tmp_dir(), ignore_errors=True)
 
 def check_setup():
     status = True

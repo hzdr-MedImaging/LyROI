@@ -57,6 +57,7 @@ Source = "https://github.com/hzdr-MedImaging/LyROI"
 [project.scripts]
 lyroi = "lyroi.entrypoints:predict_entrypoint"
 lyroi_install = "lyroi.entrypoints:install_model_entrypoint"
+lyroi_cleanup = "lyroi.entrypoints:cleanup_entrypoint"
 
 [project.gui-scripts]
 lyroi_gui = "lyroi.gui.start:main"
