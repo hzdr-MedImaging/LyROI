@@ -7,16 +7,22 @@ from PyQt5.QtWidgets import (
     QFileDialog, QComboBox, QRadioButton, QGroupBox,
     QMessageBox, QProgressBar, QFormLayout, QGridLayout, QLayout
 )
+from PyQt5.QtCore import Qt
 
 from lyroi.gui.worker import CommandWorker
 from lyroi.gui.model_manager import ModelManager
 from lyroi.gui.settings import Settings
 
-class FileSelector():
+class FileSelector:
     def __init__(self, parent: QWidget, label, directory, output = False):
         self.label = QLabel(label)
         self.line_edit = QLineEdit()
         self.button = QPushButton("Browse")
+
+        self.input_error = QLabel("Missing required fields")
+        self.input_error.setStyleSheet("color: red; font-size: 11px;")
+        self.input_error.setVisible(False)
+        self.input_error.setAlignment(Qt.AlignmentFlag.AlignLeft)
 
         def browse():
             if directory:
@@ -29,7 +35,22 @@ class FileSelector():
             if path:
                 self.line_edit.setText(path)
 
+        self.line_edit.textChanged.connect(self.set_invalid)
         self.button.clicked.connect(browse)
+
+    def set_invalid(self):
+        value = self.is_invalid()
+        self.input_error.setVisible(value)
+        set_property_and_update(self.line_edit, "invalid", value)
+
+    def is_invalid(self):
+        return self.line_edit.text().strip() == ""
+
+def set_property_and_update(field, property, value):
+    field.setProperty(property, value)
+    field.style().unpolish(field)
+    field.style().polish(field)
+    field.update()
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -45,6 +66,9 @@ class MainWindow(QMainWindow):
 
         self.init_ui()
         self.load_models()
+        self.define_styles()
+
+        self.color_ui_red = ""
 
     # ---------------- UI ---------------- #
     def add_file_selector(self, layout: QGridLayout, selector: FileSelector):
@@ -52,11 +76,19 @@ class MainWindow(QMainWindow):
         layout.addWidget(selector.label, row, 0)
         layout.addWidget(selector.line_edit, row, 1)
         layout.addWidget(selector.button, row, 2)
+        layout.addWidget(selector.input_error, row + 1, 1, alignment=Qt.AlignmentFlag.AlignTop)
 
     def add_note(self, layout: QGridLayout, text: str):
         row = layout.rowCount()
         columns = layout.columnCount()
         layout.addWidget(QLabel(text), row, 0, 1, columns)
+
+    def define_styles(self):
+        self.setStyleSheet("""
+            QLineEdit[invalid="true"] {
+                border: 1px solid #d32f2f;
+            }
+        """)
 
     def init_ui(self):
         central = QWidget()
@@ -82,12 +114,13 @@ class MainWindow(QMainWindow):
         # -------- Batch Mode -------- #
         self.batch_group = QGroupBox()
         batch_layout = QGridLayout()
+        batch_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
 
         self.batch_input = FileSelector(self,"Input Directory", True)
         self.batch_output = FileSelector(self,"Output Directory", True)
 
         self.add_file_selector(batch_layout, self.batch_input)
-        #self.add_note(batch_layout, "Note: ")
+        #self.add_note(batch_layout, "Note: abc")
         self.add_file_selector(batch_layout, self.batch_output)
 
         self.batch_group.setLayout(batch_layout)
@@ -150,6 +183,15 @@ class MainWindow(QMainWindow):
         run_layout.addWidget(self.progress_bar)
 
         layout.addLayout(run_layout)
+
+        # -------- Errors ---------#
+
+        self.input_error = QLabel("Missing required fields")
+        self.input_error.setStyleSheet("color: red; font-size: 11px;")
+        self.input_error.setVisible(False)
+        self.input_error.setAlignment(Qt.AlignmentFlag.AlignLeft)
+
+        layout.addWidget(self.input_error)
 
         # -------- Console -------- #
         self.console = QTextEdit()
@@ -214,10 +256,31 @@ class MainWindow(QMainWindow):
         self.connect_worker()
         self.worker.start()
 
+    def validate_fields(self):
+        is_batch_mode = self.radio_batch.isChecked()
+        fields = []
+        if is_batch_mode:
+            fields.append(self.batch_input)
+            fields.append(self.batch_output)
+        else:
+            fields.append(self.ct_file)
+            fields.append(self.pet_file)
+            fields.append(self.output_file)
+
+        flag = True
+        for field in fields:
+            flag &= not field.is_invalid()
+            field.set_invalid()
+
+        return flag
+
+
     # ---------------- Run Logic ---------------- #
 
     def start_prediction(self):
         model = self.model_dropdown.currentData()
+        if not self.validate_fields():
+            return False
 
         self.console.clear()
         self.console.append("Starting prediction with model " + model + "\n")
@@ -256,6 +319,8 @@ class MainWindow(QMainWindow):
         self.connect_worker()
         self.worker.start()
         self.set_active_state()
+
+        return True
 
     def stop_command(self):
         if self.worker:
