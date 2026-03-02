@@ -250,11 +250,13 @@ class MainWindow(QMainWindow):
     def install_model(self):
         model = self.model_dropdown.currentData()
         pretty_name = self.model_manager.get_pretty_name(model)
+        self.console.clear()
         self.console.append("Installing models for " + pretty_name + " mode\n")
         self.worker = CommandWorker(
             ["lyroi_install", "--mode", model, "-y", "-f"])
         self.connect_worker()
         self.worker.start()
+        self.set_active_state()
 
     def validate_fields(self):
         is_batch_mode = self.radio_batch.isChecked()
