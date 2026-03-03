@@ -33,7 +33,7 @@ def predict_entrypoint():
                              'If list of files is specified, provide first CT and then PET file. '
                              'Only .nii.gz files are supported.')
     parser.add_argument('-o', type=str, required=True, metavar="OUTPUT",
-                        help='Output folder or file, depending on the input mode.'
+                        help='Output folder or file, depending on the input mode. '
                              'For folder output, if folder does not exist, it will be created. Predicted segmentations will '
                              'have the same name as their source images but without the channel specifiers.')
     parser.add_argument('-m', '--mode', type=str, default=default_mode, choices=all_modes, metavar="MODE",
@@ -66,7 +66,7 @@ def predict_entrypoint():
         assert is_dir_output, "Output appears to be a file while input is a directory. Input and output types should match!"
     if is_file_input:
         assert is_file_output, "Output appears to be a directory while input is a file (list). Input and output types should match!"
-    assert dir_mode != file_mode, "Something is wrong with input/output specifications or inputs do not exist! Please use 'lyroi -h' for help"
+    assert dir_mode != file_mode, "Something is wrong with input/output specifications or inputs do not exist!"
 
     # import here to accelerate startup
     setup_lyroi()
@@ -165,18 +165,3 @@ def install_model_entrypoint():
         print(f"This action will require downloading {model_size} of data from the internet")
         yes_no_input("\nProceed", "Download is aborted and the model will not be installed")
     install_model(args.mode)
-
-def cleanup_entrypoint():
-    import argparse
-    parser = argparse.ArgumentParser(
-        prog="lyroi_cleanup",
-        description='Clean up the temporary directory in case of abrupt termination',
-        epilog=(
-                f"{__legal__}"
-        ),
-        formatter_class=argparse.RawDescriptionHelpFormatter
-    )
-    args = parser.parse_args()
-
-    setup_lyroi()
-    clean_temp_dir()

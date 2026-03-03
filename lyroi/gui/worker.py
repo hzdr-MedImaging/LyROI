@@ -101,17 +101,6 @@ class CommandWorker(QThread):
         # everything else goes to console
         self.output_signal.emit(text)
 
-    def cleanup(self):
-        tmp_process = subprocess.Popen(
-            ["lyroi_cleanup"],
-            stdin=subprocess.DEVNULL,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-            universal_newlines=True,
-            creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0
-        )
-        tmp_process.wait()
-
     def term_process(self):
         if os.name == "nt":
             # Windows
@@ -142,4 +131,3 @@ class CommandWorker(QThread):
                     # if nothing else helps
                     print("Force termination")
                     self.process.kill()
-                    self.cleanup()

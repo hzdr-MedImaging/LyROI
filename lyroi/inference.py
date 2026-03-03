@@ -2,7 +2,7 @@ import time
 import nibabel as nib
 import numpy as np
 
-from lyroi.utils import  get_tmp_dir, validate_extensions, format_time
+from lyroi.utils import get_tmp_dir, validate_extensions, format_time, clean_temp_dir, delete_dir
 from lyroi.modes import get_model_folders, get_folds, get_suffixes
 from lyroi.nnunet_interface import nnunet_predict, get_torch_device
 from pathlib import Path
@@ -68,7 +68,7 @@ def transfer_input_files(input_files, target_folder, mode, pname = 'patient_001'
     if len(input_files) != n_channels:
         exit(f"Number of input files does not match the number of input channels for the selected mode ({n_channels})")
     for input_file, suffix in zip(input_files, suffixes):
-        Path(target_folder, pname + suffix + ".nii.gz").symlink_to(input_file)
+        Path(target_folder, pname + suffix + ".nii.gz").symlink_to(Path(input_file).absolute())
 
 def transfer_output_files(input_folder, output_file, pname = 'patient_001'):
     Path(output_file).unlink(missing_ok=True)
@@ -79,8 +79,8 @@ def predict_from_folder(input_folder, output_folder, mode, device='gpu', progres
 
     model_folders = get_model_folders(mode)
     folds = get_folds(mode)
-    tmp_dir = get_tmp_dir()
-    tmp_rundir = Path(tmp_dir, str(time.time_ns()))
+    tmp_dir = get_tmp_dir(Path(output_folder), mode, input_folder)
+    delete_dir(tmp_dir)  # cleanup is some trash is left from previous similar runs
     tmp_subdirs = []
 
     print("Starting predictions. Wait until all models finish prediction to see the results")
@@ -91,7 +91,7 @@ def predict_from_folder(input_folder, output_folder, mode, device='gpu', progres
         for folder in model_folders:
             counter += 1
             print(f"Predicting with model {counter}/{len(model_folders)}")
-            tmp_subdir = Path(tmp_rundir, Path(folder).stem)
+            tmp_subdir = Path(tmp_dir, Path(folder).stem)
             tmp_subdirs.append(tmp_subdir)
             nnunet_predict(input_folder, tmp_subdir, folder, folds, torch_device, progress_bar=progress_bar)
 
@@ -122,23 +122,18 @@ def predict_from_folder(input_folder, output_folder, mode, device='gpu', progres
         raise e
     finally:
         print("Cleaning up...")
-        for tmp_subdir in tmp_subdirs:
-            for file in tmp_subdir.iterdir():
-                file.unlink()
-            tmp_subdir.rmdir()
-        tmp_rundir.rmdir()
-        try:
-            tmp_dir.rmdir()
-        except Exception:
-            pass
+        delete_dir(tmp_dir)
 
 def predict_from_files(input_files, output_file, mode, device='gpu', progress_bar=True):
     validate_extensions(input_files + [output_file], ".nii.gz")
 
-    tmp_dir = get_tmp_dir()
-    tmp_rundir = Path(tmp_dir, str(time.time_ns()))
-    tmp_input_dir = Path(tmp_rundir, "input")
-    tmp_output_dir = Path(tmp_rundir, "output")
+    out_dir = Path(output_file).parent.absolute()
+    assert out_dir.exists(), f"Output directory {out_dir} does not exist"
+
+    tmp_dir = get_tmp_dir(out_dir, mode, input_files)
+    delete_dir(tmp_dir) # cleanup is some trash is left from previous similar runs
+    tmp_input_dir = Path(tmp_dir, "input")
+    tmp_output_dir = Path(tmp_dir, "output")
     try:
         tmp_input_dir.mkdir(exist_ok=True, parents=True)
         tmp_output_dir.mkdir(exist_ok=True, parents=True)
@@ -149,14 +144,5 @@ def predict_from_files(input_files, output_file, mode, device='gpu', progress_ba
         print("Execution halted: ", e.args[0])
         raise e
     finally:
-        for file in tmp_input_dir.iterdir():
-            file.unlink()
-        for file in tmp_output_dir.iterdir():
-            file.unlink()
-        tmp_input_dir.rmdir()
-        tmp_output_dir.rmdir()
-        tmp_rundir.rmdir()
-        try:
-            tmp_dir.rmdir()
-        except Exception:
-            pass
+        print("Final cleanup...")
+        delete_dir(tmp_dir)

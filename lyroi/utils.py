@@ -5,7 +5,9 @@ import sys
 import math
 import requests
 import psutil
+import hashlib
 
+from typing import Union, List, overload
 from pathlib import Path
 from lyroi.modes import get_model_folders, get_folds, get_archive_names
 
@@ -139,11 +141,21 @@ def get_lyroi_dir():
 def get_models_dir():
     return str(Path(get_lyroi_dir(), "nnUNet_results"))
 
-def get_tmp_dir():
-    return str(Path(get_lyroi_dir(), "tmp"))
+def get_tmp_dir(output_dir: Path, mode: str, run_id: Union[str, List[str]]):
+    if isinstance(run_id, list):
+        run_id = [str(x) for x in run_id] # just to make sure
+        run_id = "_".join(run_id)
+    else:
+        run_id = str(run_id)
+    run_id += "_" + mode
+    run_hash = hashlib.md5(run_id.encode()).hexdigest()[:16]
+    return str(Path(output_dir, ".lyroi-"+run_hash))
 
-def clean_temp_dir():
-    shutil.rmtree(get_tmp_dir(), ignore_errors=True)
+def clean_temp_dir(output_dir: Path, mode: str, run_id: Union[str, List[str]]):
+    shutil.rmtree(get_tmp_dir(output_dir, mode, run_id), ignore_errors=True)
+
+def delete_dir(temp_dir: Path):
+    shutil.rmtree(temp_dir, ignore_errors=True)
 
 def check_setup():
     status = True
