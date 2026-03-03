@@ -3,13 +3,15 @@ from PyQt5.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QPushButton, QLabel, QLineEdit, QTextEdit,
     QFileDialog, QComboBox, QRadioButton, QGroupBox,
-    QMessageBox, QProgressBar, QFormLayout, QGridLayout, QLayout
+    QMessageBox, QProgressBar, QFormLayout, QGridLayout, QLayout, QSpacerItem, QFrame
 )
 from PyQt5.QtCore import Qt
 
 from lyroi.gui.worker import CommandWorker
 from lyroi.gui.model_manager import ModelManager
 from lyroi.gui.settings import Settings
+from lyroi.gui.utils import visualize_grid, set_property_and_update
+
 
 class FileSelector:
     def __init__(self, parent: QWidget, label, directory, output = False):
@@ -17,10 +19,12 @@ class FileSelector:
         self.line_edit = QLineEdit()
         self.button = QPushButton("Browse")
 
-        self.input_error = QLabel("Missing required fields")
-        self.input_error.setStyleSheet("color: red; font-size: 11px;")
+        self.input_error = QLabel("Missing required field")
+        self.input_error.setStyleSheet("color: red; font-size: 10px")
+        self.input_error.setMargin(-1)
         self.input_error.setVisible(False)
-        self.input_error.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        self.input_error.setAlignment(Qt.AlignLeft)
+        self.input_error.setAlignment(Qt.AlignTop)
 
         def browse():
             if directory:
@@ -43,12 +47,6 @@ class FileSelector:
 
     def is_invalid(self):
         return self.line_edit.text().strip() == ""
-
-def set_property_and_update(field, property, value):
-    field.setProperty(property, value)
-    field.style().unpolish(field)
-    field.style().polish(field)
-    field.update()
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -75,6 +73,7 @@ class MainWindow(QMainWindow):
         layout.addWidget(selector.line_edit, row, 1)
         layout.addWidget(selector.button, row, 2)
         layout.addWidget(selector.input_error, row + 1, 1, alignment=Qt.AlignmentFlag.AlignTop)
+        layout.setRowMinimumHeight(row + 1, selector.input_error.sizeHint().height() + 1)
 
     def add_note(self, layout: QGridLayout, text: str):
         row = layout.rowCount()
@@ -85,6 +84,7 @@ class MainWindow(QMainWindow):
         self.setStyleSheet("""
             QLineEdit[invalid="true"] {
                 border: 1px solid #d32f2f;
+                padding-bottom: 0px
             }
             QProgressBar::chunk[inactive="true"] {
                 background-color: #a9a9a9;
@@ -116,7 +116,8 @@ class MainWindow(QMainWindow):
         # -------- Batch Mode -------- #
         self.batch_group = QGroupBox()
         batch_layout = QGridLayout()
-        batch_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+        batch_layout.setAlignment(Qt.AlignTop)
+        batch_layout.setVerticalSpacing(0)
 
         self.batch_input = FileSelector(self,"Input Directory", True)
         self.batch_output = FileSelector(self,"Output Directory", True)
@@ -127,6 +128,7 @@ class MainWindow(QMainWindow):
 
         self.batch_group.setLayout(batch_layout)
         layout.addWidget(self.batch_group)
+        #visualize_grid(batch_layout)
 
         # -------- Single Mode -------- #
         self.single_group = QGroupBox()
