@@ -1,6 +1,4 @@
-import pathlib
-import re
-
+from PyQt5.QtGui import QFontMetrics
 from PyQt5.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QPushButton, QLabel, QLineEdit, QTextEdit,
@@ -278,14 +276,22 @@ class MainWindow(QMainWindow):
             return False
 
         self.console.clear()
-        self.console.append("Starting prediction with model " + model + "\n")
+        self.console.append("Starting prediction with model " + model)
 
         if self.radio_batch.isChecked():
             input_dir = self.batch_input.line_edit.text()
             output_dir = self.batch_output.line_edit.text()
 
-            self.console.append("Input directory:\n" + input_dir + "\n")
-            self.console.append("Output directory:\n" + output_dir + "\n")
+            font_metrics = QFontMetrics(self.console.font())
+            tab_width = font_metrics.horizontalAdvance("Output directory:") + 15
+
+            self.console.insertHtml(f"""
+                <table width="100%" cellpadding="2">
+                    <tr><td width="{tab_width}">Input directory:</td><td>{input_dir}</td></tr>
+                    <tr><td width="{tab_width}">Output directory:</td><td>{output_dir}</td></tr>
+                </table>
+                <br>
+            """)
 
             cmd = [
                 "lyroi",
@@ -320,6 +326,8 @@ class MainWindow(QMainWindow):
     def stop_command(self):
         if self.worker:
             self.console.append("Stop requested")
+            self.console.repaint()
+            self.worker.progress_signal.disconnect()
             self.worker.stop()
 
     def finish_handler(self):
