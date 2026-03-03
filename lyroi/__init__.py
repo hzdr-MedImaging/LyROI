@@ -1,3 +1,4 @@
+import os
 from datetime import datetime
 from importlib.metadata import version, PackageNotFoundError, metadata
 import re
@@ -43,5 +44,6 @@ def terminate_handler(signal, frame):
 
 signal.signal(signal.SIGINT, exit_handler)
 signal.signal(signal.SIGTERM, terminate_handler)
-signal.signal(signal.SIGBREAK, terminate_handler) # Windows termination
+if os.name == "nt":
+    signal.signal(signal.SIGBREAK, terminate_handler) # Windows termination
 sys.excepthook = error_handler
