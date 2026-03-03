@@ -88,6 +88,10 @@ class MainWindow(QMainWindow):
             QLineEdit[invalid="true"] {
                 border: 1px solid #d32f2f;
             }
+            QProgressBar::chunk[inactive="true"] {
+                background-color: #a9a9a9;
+                border: 2px
+            }
         """)
 
     def init_ui(self):
@@ -173,6 +177,7 @@ class MainWindow(QMainWindow):
         self.progress_bar = QProgressBar()
         self.progress_bar.setRange(0, 100)
         self.progress_bar.setValue(0)
+        self.progress_bar.setAlignment(Qt.AlignCenter)
 
         self.btn_run.clicked.connect(self.start_prediction)
         self.btn_stop.clicked.connect(self.stop_command)
@@ -210,24 +215,12 @@ class MainWindow(QMainWindow):
     def set_active_state(self):
         self.btn_run.setEnabled(False)
         self.btn_stop.setEnabled(True)
-        self.progress_bar.setStyleSheet(
-            "QProgressBar {"
-            "    text-align: center;"
-            "}"
-        )
+        set_property_and_update(self.progress_bar, "inactive", False)
 
     def set_idle_state(self):
         self.btn_run.setEnabled(True)
         self.btn_stop.setEnabled(False)
-        self.progress_bar.setStyleSheet(
-            "QProgressBar {"
-            "    text-align: center;"
-            "}"
-            "QProgressBar::chunk {"
-            "    background-color: #a9a9a9;" # Gray
-            "    border: 2px"
-            "}"
-        )
+        set_property_and_update(self.progress_bar, "inactive", True)
 
     # ---------------- Model Logic ---------------- #
 
