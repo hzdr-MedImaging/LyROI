@@ -20,7 +20,7 @@ class FileSelector:
         self.button = QPushButton("Browse")
 
         self.input_error = QLabel("Missing required field")
-        self.input_error.setStyleSheet("color: red; font-size: 10px")
+        self.input_error.setStyleSheet("color: #d32f2f; font-size: 10px")
         self.input_error.setMargin(-1)
         self.input_error.setVisible(False)
         self.input_error.setAlignment(Qt.AlignLeft)
@@ -63,8 +63,6 @@ class MainWindow(QMainWindow):
         self.init_ui()
         self.load_models()
         self.define_styles()
-
-        self.color_ui_red = ""
 
     # ---------------- UI ---------------- #
     def add_file_selector(self, layout: QGridLayout, selector: FileSelector):
@@ -133,6 +131,8 @@ class MainWindow(QMainWindow):
         # -------- Single Mode -------- #
         self.single_group = QGroupBox()
         single_layout = QGridLayout()
+        single_layout.setAlignment(Qt.AlignTop)
+        single_layout.setVerticalSpacing(0)
 
         self.ct_file = FileSelector(self,"CT File", False)
         self.pet_file = FileSelector(self,"PET File", False)
