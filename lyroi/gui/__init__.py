@@ -37,7 +37,6 @@ def error_handler_win(exc_type, exc_value, exc_traceback):
   sys.exit(1)
 
 signal.signal(signal.SIGINT, exit_handler)
-# signal.signal(signal.SIGBREAK, empty_handler) # prevent GUI from dying on Windows
 if os.name == 'nt':
   sys.excepthook = error_handler_win
 else:

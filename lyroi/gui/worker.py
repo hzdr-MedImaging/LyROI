@@ -132,12 +132,12 @@ class CommandWorker(QThread):
         if self.process.poll() is None: #check if already terminated
             try:
                 self.term_process()
-                self.process.wait(0.5)
+                self.process.wait(2)
             except subprocess.TimeoutExpired:
                 try:
                     # try again
                     self.term_process()
-                    self.process.wait(0.5)
+                    self.process.wait(2)
                 except subprocess.TimeoutExpired:
                     # if nothing else helps
                     print("Force termination")
