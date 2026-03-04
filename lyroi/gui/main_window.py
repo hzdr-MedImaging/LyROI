@@ -1,9 +1,9 @@
-from PyQt5.QtGui import QFontMetrics
+from PyQt5.QtGui import QFontMetrics, QIcon
 from PyQt5.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QPushButton, QLabel, QLineEdit, QTextEdit,
     QFileDialog, QComboBox, QRadioButton, QGroupBox,
-    QMessageBox, QProgressBar, QGridLayout, QSizePolicy
+    QMessageBox, QProgressBar, QGridLayout, QSizePolicy, QAction
 )
 from PyQt5.QtCore import Qt, QTimer
 
@@ -12,6 +12,8 @@ from lyroi.gui.worker import CommandWorker
 from lyroi.gui.model_manager import ModelManager
 from lyroi.gui.settings import Settings
 from lyroi.gui.utils import visualize_grid, set_property_and_update
+
+from lyroi import __legal__
 
 
 class FileSelector:
@@ -56,6 +58,7 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("LyROI")
         self.resize(900, 650)
 
+
         self.settings = Settings()
         self.model_manager = ModelManager()
         self.device_manager = DeviceManager()
@@ -64,6 +67,7 @@ class MainWindow(QMainWindow):
 
         self.define_styles()
         self.init_ui()
+        self.build_menubar()
         self.load_models()
         self.load_devices()
 
@@ -101,6 +105,34 @@ class MainWindow(QMainWindow):
                 color: #616161  
             }
         """)
+
+    def build_menubar(self):
+
+        def show_help():
+            QMessageBox.information(self, "Help",
+                                    "Welcome to LyROI – nnU-Net-based Lymphoma Total Metabolic Tumor Volume Delineation Tool\n\n"
+                                    "For detailed documentation, visit our github:\n"
+                                    "https://github.com/hzdr-MedImaging/LyROI")
+
+        def show_about():
+            QMessageBox.about(self, "About",
+                              __legal__)
+
+        # Help
+        help_menu = self.menuBar().addMenu("&Help")
+
+        help_contents_action = QAction("&Help", self)
+        help_contents_action.setShortcut("F1")
+        help_contents_action.setStatusTip("Open help documentation")
+        help_contents_action.triggered.connect(show_help)
+        help_menu.addAction(help_contents_action)
+
+        about_action = QAction("&About", self)
+        about_action.setStatusTip("About this application")
+        about_action.triggered.connect(show_about)
+        help_menu.addAction(about_action)
+
+
 
     def init_ui(self):
         central = QWidget()
@@ -280,7 +312,7 @@ class MainWindow(QMainWindow):
         else:
             self.device_status_label.setText("Status: Checking...")
             set_property_and_update(self.device_status_label, "status", "neutral")
-            QTimer.singleShot(100, set_device_status) # it might take a while, let's not block interface
+            QTimer.singleShot(400, set_device_status) # it might take a while, let's not block interface
 
     def check_updates(self):
         model = self.model_dropdown.currentData()
@@ -328,13 +360,13 @@ class MainWindow(QMainWindow):
         self.console.clear()
         self.console.append("Starting prediction with model " + model)
 
+        font_metrics = QFontMetrics(self.console.font())
+
         if self.radio_batch.isChecked():
             input_dir = self.batch_input.line_edit.text()
             output_dir = self.batch_output.line_edit.text()
 
-            font_metrics = QFontMetrics(self.console.font())
             tab_width = font_metrics.horizontalAdvance("Output directory:") + 15
-
             self.console.insertHtml(f"""
                 <table width="100%" cellpadding="2">
                     <tr><td width="{tab_width}">Input directory:</td><td>{input_dir}</td></tr>
@@ -356,8 +388,15 @@ class MainWindow(QMainWindow):
             ct = self.ct_file.line_edit.text()
             output_file = self.output_file.line_edit.text()
 
-            self.console.append("Input files:\n" + "CT: " + ct + "\n" + "PET: " + pet + "\n")
-            self.console.append("Output file:\n" + str(output_file) + "\n")
+            tab_width = font_metrics.horizontalAdvance("Output file:") + 15
+            self.console.insertHtml(f"""
+                <table width="100%" cellpadding="2">
+                    <tr><td width="{tab_width}">CT file:</td><td>{ct}</td></tr>
+                    <tr><td width="{tab_width}">PET file:</td><td>{pet}</td></tr>
+                    <tr><td width="{tab_width}">Output file:</td><td>{output_file}</td></tr>
+                </table>
+                <br>
+            """)
 
             cmd = [
                 "lyroi",
