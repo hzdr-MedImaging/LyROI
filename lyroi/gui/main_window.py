@@ -3,10 +3,11 @@ from PyQt5.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QPushButton, QLabel, QLineEdit, QTextEdit,
     QFileDialog, QComboBox, QRadioButton, QGroupBox,
-    QMessageBox, QProgressBar, QFormLayout, QGridLayout, QLayout, QSpacerItem, QFrame
+    QMessageBox, QProgressBar, QGridLayout, QSizePolicy
 )
 from PyQt5.QtCore import Qt
 
+from lyroi.devices import DeviceManager
 from lyroi.gui.worker import CommandWorker
 from lyroi.gui.model_manager import ModelManager
 from lyroi.gui.settings import Settings
@@ -57,11 +58,13 @@ class MainWindow(QMainWindow):
 
         self.settings = Settings()
         self.model_manager = ModelManager()
+        self.device_manager = DeviceManager()
 
         self.worker = None
 
         self.init_ui()
         self.load_models()
+        self.load_devices()
         self.define_styles()
 
     # ---------------- UI ---------------- #
@@ -149,18 +152,19 @@ class MainWindow(QMainWindow):
         model_group = QGroupBox("Model")
         model_layout = QHBoxLayout()
 
+        self.model_label = QLabel("Select mode")
         self.model_dropdown = QComboBox()
         self.model_version_label = QLabel("Installed: unknown")
-
         self.btn_check_updates = QPushButton("Check Updates")
         self.btn_install = QPushButton("Install / Update")
+
+        self.model_label.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Maximum)
 
         self.btn_check_updates.clicked.connect(self.check_updates)
         self.btn_install.clicked.connect(self.install_model)
         self.model_dropdown.currentIndexChanged.connect(self.update_installed_version)
 
-
-        model_layout.addWidget(QLabel("Select Mode"))
+        model_layout.addWidget(self.model_label)
         model_layout.addWidget(self.model_dropdown)
         model_layout.addWidget(self.model_version_label)
         model_layout.addWidget(self.btn_check_updates)
@@ -173,30 +177,35 @@ class MainWindow(QMainWindow):
         run_layout = QHBoxLayout()
         self.btn_run = QPushButton("Run")
         self.btn_stop = QPushButton("Stop")
-        self.progress_label = QLabel("Current Task Progress")
-        self.progress_bar = QProgressBar()
-        self.progress_bar.setRange(0, 100)
-        self.progress_bar.setValue(0)
-        self.progress_bar.setAlignment(Qt.AlignCenter)
+        self.device_label = QLabel("Select device")
+        self.device_dropdown = QComboBox()
+
+        self.device_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
 
         self.btn_run.clicked.connect(self.start_prediction)
         self.btn_stop.clicked.connect(self.stop_command)
 
         run_layout.addWidget(self.btn_run)
         run_layout.addWidget(self.btn_stop)
-        run_layout.addWidget(self.progress_label)
-        run_layout.addWidget(self.progress_bar)
+        run_layout.addWidget(QWidget())
+        run_layout.addWidget(self.device_label)
+        run_layout.addWidget(self.device_dropdown)
 
         layout.addLayout(run_layout)
 
-        # -------- Errors ---------#
+        # -------- Progress bar -------- #
+        progress_layout = QGridLayout()
 
-        self.input_error = QLabel("Missing required fields")
-        self.input_error.setStyleSheet("color: red; font-size: 11px;")
-        self.input_error.setVisible(False)
-        self.input_error.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        self.progress_label = QLabel("Current Task Progress")
+        self.progress_bar = QProgressBar()
+        self.progress_bar.setRange(0, 100)
+        self.progress_bar.setValue(0)
+        self.progress_bar.setAlignment(Qt.AlignCenter)
 
-        layout.addWidget(self.input_error)
+        progress_layout.addWidget(self.progress_label, 0, 0)
+        progress_layout.addWidget(self.progress_bar, 0, 1)
+
+        layout.addLayout(progress_layout)
 
         # -------- Console -------- #
         self.console = QTextEdit()
@@ -229,6 +238,11 @@ class MainWindow(QMainWindow):
         for model in models:
             self.model_dropdown.addItem(self.model_manager.get_pretty_name(model), userData=model)
         self.update_installed_version()
+
+    def load_devices(self):
+        devices = self.device_manager.get_all()
+        for device in devices:
+            self.device_dropdown.addItem(self.device_manager.get_pretty_name(device), userData=device)
 
     def update_installed_version(self):
         model = self.model_dropdown.currentData()
@@ -274,6 +288,7 @@ class MainWindow(QMainWindow):
 
     def start_prediction(self):
         model = self.model_dropdown.currentData()
+        device = self.device_dropdown.currentData()
         if not self.validate_fields():
             return False
 
@@ -299,7 +314,8 @@ class MainWindow(QMainWindow):
                 "lyroi",
                 "-i", input_dir,
                 "-o", output_dir,
-                "--mode", model
+                "--mode", model,
+                "--device", device
             ]
 
         else:
@@ -314,7 +330,8 @@ class MainWindow(QMainWindow):
                 "lyroi",
                 "-i", ct, pet,
                 "-o", output_file,
-                "--mode", model
+                "--mode", model,
+                "--device", device
             ]
 
         n_folds = self.model_manager.get_n_folds(model)
