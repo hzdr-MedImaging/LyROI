@@ -1,19 +1,25 @@
 from typing import Union, List, Dict
-# from torch.cuda import is_available as cuda_available
-# from torch.backends.mps import is_available as mps_available
-
 
 
 class DeviceInfo:
     def __init__(self,
                  name: str,
                  pretty_name: str,
-                 available: bool = True,
-                 default: bool = False):
+                 default: bool = False,
+                 availability_func: callable = lambda: True):
         self.name = name
         self.pretty_name = pretty_name
-        self.available = available
         self.default = default
+        self.availability_func = availability_func
+        self.availability = None # cached value
+
+    def is_available(self):
+        if self.availability is None:
+            self.availability = self.availability_func()
+        return self.availability
+
+    def has_availability(self):
+        return self.availability is not None
 
 class DeviceManager:
     def __init__(self):
@@ -22,8 +28,8 @@ class DeviceManager:
             "gpu": DeviceInfo(
                 name="gpu",
                 pretty_name="GPU",
-                # available=cuda_available(),
-                default=True
+                default=True,
+                availability_func=lambda: __import__('torch').cuda.is_available()
             ),
             "cpu": DeviceInfo(
                 name="cpu",
@@ -38,8 +44,8 @@ class DeviceManager:
             "mps": DeviceInfo(
                 name="mps",
                 pretty_name="MPS (MacOS)",
-                # available=mps_available(),
-                default=False
+                default=False,
+                availability_func=lambda: __import__('torch').backends.mps.is_available()
             )
         }
 
@@ -48,7 +54,8 @@ class DeviceManager:
         return list(self.device_list.keys())
 
     def get_available(self) -> List[str]:
-        return self.get_all() # TODO: implement availability check
+        return [device.name for device in self.device_list.values() if device.is_available()]
+        #return self.get_all()
 
     #Only the first occurrence of default tag will be returned
     def get_default(self, only_available = False) -> str:
@@ -60,3 +67,9 @@ class DeviceManager:
 
     def get_pretty_name(self, device: str) -> str:
         return self.device_list[device].pretty_name
+
+    def is_available(self, device: str):
+        return self.device_list[device].is_available()
+
+    def has_availability(self, device: str):
+        return self.device_list[device].has_availability()

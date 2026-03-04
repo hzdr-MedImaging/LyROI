@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import (
     QFileDialog, QComboBox, QRadioButton, QGroupBox,
     QMessageBox, QProgressBar, QGridLayout, QSizePolicy
 )
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QTimer
 
 from lyroi.devices import DeviceManager
 from lyroi.gui.worker import CommandWorker
@@ -62,10 +62,10 @@ class MainWindow(QMainWindow):
 
         self.worker = None
 
+        self.define_styles()
         self.init_ui()
         self.load_models()
         self.load_devices()
-        self.define_styles()
 
     # ---------------- UI ---------------- #
     def add_file_selector(self, layout: QGridLayout, selector: FileSelector):
@@ -90,6 +90,15 @@ class MainWindow(QMainWindow):
             QProgressBar::chunk[inactive="true"] {
                 background-color: #a9a9a9;
                 border: 2px
+            }
+            QLabel[status="bad"] {
+                color: #d32f2f  
+            }
+            QLabel[status="good"] {
+                color: #388e3c  
+            }
+            QLabel[status="neutral"] {
+                color: #616161  
             }
         """)
 
@@ -179,17 +188,20 @@ class MainWindow(QMainWindow):
         self.btn_stop = QPushButton("Stop")
         self.device_label = QLabel("Select device")
         self.device_dropdown = QComboBox()
+        self.device_status_label = QLabel("")
 
         self.device_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
 
         self.btn_run.clicked.connect(self.start_prediction)
         self.btn_stop.clicked.connect(self.stop_command)
+        self.device_dropdown.currentIndexChanged.connect(self.update_device_availability)
 
         run_layout.addWidget(self.btn_run)
         run_layout.addWidget(self.btn_stop)
         run_layout.addWidget(QWidget())
         run_layout.addWidget(self.device_label)
         run_layout.addWidget(self.device_dropdown)
+        run_layout.addWidget(self.device_status_label)
 
         layout.addLayout(run_layout)
 
@@ -243,11 +255,32 @@ class MainWindow(QMainWindow):
         devices = self.device_manager.get_all()
         for device in devices:
             self.device_dropdown.addItem(self.device_manager.get_pretty_name(device), userData=device)
+        self.update_device_availability()
 
     def update_installed_version(self):
         model = self.model_dropdown.currentData()
         version = self.model_manager.get_installed_version(model)
         self.model_version_label.setText(f"Installed: {version}")
+
+    def update_device_availability(self):
+        device = self.device_dropdown.currentData()
+
+        def set_device_status():
+            self.device_dropdown.setEnabled(False)
+            if self.device_manager.is_available(device):
+                self.device_status_label.setText("Status: Available")
+                set_property_and_update(self.device_status_label, "status", "good")
+            else:
+                set_property_and_update(self.device_status_label, "status", "bad")
+                self.device_status_label.setText("Status: Not Available")
+            self.device_dropdown.setEnabled(True)
+
+        if self.device_manager.has_availability(device):
+            set_device_status() # no need to wait
+        else:
+            self.device_status_label.setText("Status: Checking...")
+            set_property_and_update(self.device_status_label, "status", "neutral")
+            QTimer.singleShot(100, set_device_status) # it might take a while, let's not block interface
 
     def check_updates(self):
         model = self.model_dropdown.currentData()
