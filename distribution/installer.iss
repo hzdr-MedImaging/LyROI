@@ -12,7 +12,7 @@
 
 #define MyAppName "LyROI"
 #define MyAppVersion "1.0"
-#define GUIexec "lyroi_gui"
+#define GUIexec "lyroi_gui.exe"
 #define PyPIpackage "lyroi"
 #define MyEnvName "lyroi-app"
 #define CondaDir "{localappdata}\Miniforge3"
@@ -31,12 +31,9 @@ WizardStyle=modern
 
 [Icons]
 ; Start Menu shortcut
-Name: "{userprograms}\{#MyAppName}"; Filename: "{code:GetCondaPath}"; \
-  Parameters: "run -p {code:GetEnvPath} {#GUIexec}"
-
+Name: "{userprograms}\{#MyAppName}"; Filename: "{code:GetEnvPath}/Scripts/{#GUIexec}";
 ; Desktop shortcut
-Name: "{userdesktop}\{#MyAppName}"; Filename: "{code:GetCondaPath}"; \
-  Parameters: "run -p {code:GetEnvPath} {#GUIexec}"
+Name: "{userdesktop}\{#MyAppName}"; Filename: "{code:GetEnvPath}/Scripts/{#GUIexec}";
   
 
 [Code]
@@ -129,7 +126,7 @@ end;
 procedure RunOrFail(FileName, Params: String);
 var
   ResultCode: Integer;
-  Path: String;
+  //Path: String;
 begin
   //Path := GetEnv('PATH')
   //if not ExecAndLogOutput(
@@ -141,7 +138,7 @@ begin
   //            SW_SHOW, ewWaitUntilTerminated, ResultCode, nil)
     if not ExecAndLogOutput(FileName, Params,
               '',
-              SW_SHOW, ewWaitUntilTerminated, ResultCode, nil)
+              SW_HIDE, ewWaitUntilTerminated, ResultCode, nil)
      or (ResultCode <> 0) then
   begin
     MsgBox('Installation failed during: ' + Params,
