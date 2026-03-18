@@ -11,7 +11,7 @@ from lyroi.devices import DeviceManager
 from lyroi.gui.worker import CommandWorker
 from lyroi.gui.model_manager import ModelManager
 from lyroi.gui.settings import Settings
-from lyroi.gui.utils import visualize_grid, set_property_and_update
+from lyroi.gui.utils import visualize_grid, set_property_and_update, set_ui_scale
 
 from lyroi import __legal__
 
@@ -57,6 +57,7 @@ class MainWindow(QMainWindow):
 
         self.setWindowTitle("LyROI")
         self.resize(900, 650)
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
 
         self.settings = Settings()

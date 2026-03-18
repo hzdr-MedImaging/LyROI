@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QFrame, QHBoxLayout
+from PyQt5.QtWidgets import QFrame, QHBoxLayout, QApplication
 
 
 def validate_path(path):
@@ -44,3 +44,9 @@ def set_property_and_update(field, property, value):
     field.style().unpolish(field)
     field.style().polish(field)
     field.update()
+
+def set_ui_scale(factor: float):
+    app = QApplication.instance()
+    font = app.font()
+    font.setPointSizeF(font.pointSizeF() * factor)
+    app.setFont(font)
