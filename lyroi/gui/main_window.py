@@ -295,26 +295,6 @@ class MainWindow(QMainWindow):
         version = self.model_manager.get_installed_version(model)
         self.model_version_label.setText(f"Installed: {version}")
 
-    def update_device_availability(self):
-        device = self.device_dropdown.currentData()
-
-        def set_device_status():
-            self.device_dropdown.setEnabled(False)
-            if self.device_manager.is_available(device):
-                self.device_status_label.setText("Status: Available")
-                set_property_and_update(self.device_status_label, "status", "good")
-            else:
-                set_property_and_update(self.device_status_label, "status", "bad")
-                self.device_status_label.setText("Status: Not Available")
-            self.device_dropdown.setEnabled(True)
-
-        if self.device_manager.has_availability(device):
-            set_device_status() # no need to wait
-        else:
-            self.device_status_label.setText("Status: Checking...")
-            set_property_and_update(self.device_status_label, "status", "neutral")
-            QTimer.singleShot(400, set_device_status) # it might take a while, let's not block interface
-
     def model_install_dialog(self):
         model = self.model_dropdown.currentData()
         model_name = self.model_dropdown.currentText()
@@ -360,6 +340,28 @@ class MainWindow(QMainWindow):
             field.set_invalid()
 
         return flag
+
+    # ---------------- Device Logic ---------------- #
+
+    def update_device_availability(self):
+        device = self.device_dropdown.currentData()
+
+        def set_device_status():
+            self.device_dropdown.setEnabled(False)
+            if self.device_manager.is_available(device):
+                self.device_status_label.setText("Status: Available")
+                set_property_and_update(self.device_status_label, "status", "good")
+            else:
+                set_property_and_update(self.device_status_label, "status", "bad")
+                self.device_status_label.setText("Status: Not Available")
+            self.device_dropdown.setEnabled(True)
+
+        if self.device_manager.has_availability(device):
+            set_device_status() # no need to wait
+        else:
+            self.device_status_label.setText("Status: Checking...")
+            set_property_and_update(self.device_status_label, "status", "neutral")
+            QTimer.singleShot(400, set_device_status) # it might take a while, let's not block interface
 
 
     # ---------------- Run Logic ---------------- #
