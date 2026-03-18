@@ -197,19 +197,16 @@ class MainWindow(QMainWindow):
         self.model_label = QLabel("Select mode")
         self.model_dropdown = QComboBox()
         self.model_version_label = QLabel("Installed: unknown")
-        self.btn_check_updates = QPushButton("Check Updates")
         self.btn_install = QPushButton("Install / Update")
 
         self.model_label.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Maximum)
 
-        self.btn_check_updates.clicked.connect(self.check_updates)
-        self.btn_install.clicked.connect(self.install_model)
+        self.btn_install.clicked.connect(self.model_install_dialog)
         self.model_dropdown.currentIndexChanged.connect(self.update_installed_version)
 
         model_layout.addWidget(self.model_label)
         model_layout.addWidget(self.model_dropdown)
         model_layout.addWidget(self.model_version_label)
-        model_layout.addWidget(self.btn_check_updates)
         model_layout.addWidget(self.btn_install)
 
         model_group.setLayout(model_layout)
@@ -315,10 +312,22 @@ class MainWindow(QMainWindow):
             set_property_and_update(self.device_status_label, "status", "neutral")
             QTimer.singleShot(400, set_device_status) # it might take a while, let's not block interface
 
-    def check_updates(self):
+    def model_install_dialog(self):
         model = self.model_dropdown.currentData()
+        model_name = self.model_dropdown.currentText()
+
         msg = self.model_manager.check_for_updates(model)
-        QMessageBox.information(self, "Model Update", msg)
+
+        reply = QMessageBox.question(
+            self,
+            "Model installation",
+            msg,
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.Yes  # default button
+        )
+
+        if reply == QMessageBox.Yes:
+            self.install_model()
 
     def install_model(self):
         model = self.model_dropdown.currentData()
