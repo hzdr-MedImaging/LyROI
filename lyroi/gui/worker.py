@@ -5,7 +5,7 @@ import subprocess
 import sys
 import time
 
-from PyQt5.QtCore import QThread, pyqtSignal
+from PyQt5.QtCore import QThread, pyqtSignal, QObject
 
 
 # Only for Windows
@@ -131,3 +131,19 @@ class CommandWorker(QThread):
                     # if nothing else helps
                     print("Force termination")
                     self.process.kill()
+
+class PyWorker(QObject):
+    finished = pyqtSignal()
+    result = pyqtSignal(object)
+
+    def __init__(self, function, *args, **kwargs):
+        super().__init__()
+        self.function = function
+        self.args = args
+        self.kwargs = kwargs
+
+
+    def run(self):
+        result = self.function(*self.args,**self.kwargs)
+        self.result.emit(result)
+        self.finished.emit()

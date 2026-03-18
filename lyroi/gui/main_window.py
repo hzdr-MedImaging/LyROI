@@ -5,13 +5,14 @@ from PyQt5.QtWidgets import (
     QFileDialog, QComboBox, QRadioButton, QGroupBox,
     QMessageBox, QProgressBar, QGridLayout, QSizePolicy, QAction
 )
-from PyQt5.QtCore import Qt, QTimer
+from PyQt5.QtCore import Qt, QTimer, QThread, QEventLoop
 
 from lyroi.devices import DeviceManager
-from lyroi.gui.worker import CommandWorker
+from lyroi.gui.worker import CommandWorker, PyWorker
 from lyroi.gui.model_manager import ModelManager
 from lyroi.gui.settings import Settings
 from lyroi.gui.utils import visualize_grid, set_property_and_update, set_ui_scale
+from lyroi.gui.loading_screen import LoadingOverlay
 
 from lyroi import __legal__
 
@@ -136,6 +137,8 @@ class MainWindow(QMainWindow):
 
 
     def init_ui(self):
+        self.overlay = LoadingOverlay(self)
+
         central = QWidget()
         self.setCentralWidget(central)
         layout = QVBoxLayout(central)
@@ -316,7 +319,7 @@ class MainWindow(QMainWindow):
         model = self.model_dropdown.currentData()
         model_name = self.model_dropdown.currentText()
 
-        msg = self.model_manager.check_for_updates(model)
+        msg = self.blocking_call(self.model_manager.check_for_updates, model = model)
 
         reply = QMessageBox.question(
             self,
@@ -440,3 +443,32 @@ class MainWindow(QMainWindow):
         self.worker.output_signal.connect(self.console.append)
         self.worker.finished_signal.connect(self.finish_handler)
         self.worker.progress_signal.connect(self.progress_bar.setValue)
+
+    def blocking_call(self, function, **kwargs):
+        loop = QEventLoop()
+        thread = QThread()
+        worker = PyWorker(function, **kwargs)
+        worker.moveToThread(thread)
+
+        results = {}
+
+        def store_results(value):
+            results["value"] = value
+
+        worker.result.connect(store_results)
+        worker.finished.connect(loop.quit)
+
+        thread.started.connect(worker.run)
+        worker.finished.connect(thread.quit)
+        worker.finished.connect(worker.deleteLater)
+
+        self.overlay.start()
+        thread.start()
+
+        loop.exec()  # <-- blocks *logically* but UI still alive
+
+        thread.wait()
+
+        self.overlay.stop()
+
+        return results.get("value")
