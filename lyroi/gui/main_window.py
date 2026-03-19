@@ -287,12 +287,6 @@ class MainWindow(QMainWindow):
             self.model_dropdown.addItem(self.model_manager.get_pretty_name(model), userData=model)
         self.update_installed_version()
 
-    def load_devices(self):
-        devices = self.device_manager.get_all()
-        for device in devices:
-            self.device_dropdown.addItem(self.device_manager.get_pretty_name(device), userData=device)
-        #self.update_device_availability()
-
     def update_installed_version(self):
         model = self.model_dropdown.currentData()
         version = self.model_manager.get_installed_version(model)
@@ -345,6 +339,11 @@ class MainWindow(QMainWindow):
         return flag
 
     # ---------------- Device Logic ---------------- #
+
+    def load_devices(self):
+        devices = self.device_manager.get_all()
+        for device in devices:
+            self.device_dropdown.addItem(self.device_manager.get_pretty_name(device), userData=device)
 
     def update_device_availability(self):
         device = self.device_dropdown.currentData()
