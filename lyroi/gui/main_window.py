@@ -1,3 +1,5 @@
+import time
+
 from PyQt5.QtGui import QFontMetrics, QIcon
 from PyQt5.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
@@ -66,12 +68,13 @@ class MainWindow(QMainWindow):
         self.device_manager = DeviceManager()
 
         self.worker = None
+        self.gui_tasks = []
 
         self.define_styles()
         self.init_ui()
         self.build_menubar()
         self.load_models()
-        self.load_devices()
+        QTimer.singleShot(100, self.load_devices)
 
     # ---------------- UI ---------------- #
     def add_file_selector(self, layout: QGridLayout, selector: FileSelector):
@@ -288,7 +291,7 @@ class MainWindow(QMainWindow):
         devices = self.device_manager.get_all()
         for device in devices:
             self.device_dropdown.addItem(self.device_manager.get_pretty_name(device), userData=device)
-        self.update_device_availability()
+        #self.update_device_availability()
 
     def update_installed_version(self):
         model = self.model_dropdown.currentData()
@@ -346,9 +349,12 @@ class MainWindow(QMainWindow):
     def update_device_availability(self):
         device = self.device_dropdown.currentData()
 
-        def set_device_status():
+        def get_availability(device):
+            return self.device_manager.is_available(device)
+
+        def set_device_status(is_available):
             self.device_dropdown.setEnabled(False)
-            if self.device_manager.is_available(device):
+            if is_available:
                 self.device_status_label.setText("Status: Available")
                 set_property_and_update(self.device_status_label, "status", "good")
             else:
@@ -357,11 +363,12 @@ class MainWindow(QMainWindow):
             self.device_dropdown.setEnabled(True)
 
         if self.device_manager.has_availability(device):
-            set_device_status() # no need to wait
+            set_device_status(get_availability(device)) # no need to wait
         else:
             self.device_status_label.setText("Status: Checking...")
             set_property_and_update(self.device_status_label, "status", "neutral")
-            QTimer.singleShot(400, set_device_status) # it might take a while, let's not block interface
+            #QTimer.singleShot(400, set_device_status) # it might take a while, let's not block interface
+            self.async_call(set_device_status, get_availability, device)
 
 
     # ---------------- Run Logic ---------------- #
@@ -446,10 +453,10 @@ class MainWindow(QMainWindow):
         self.worker.finished_signal.connect(self.finish_handler)
         self.worker.progress_signal.connect(self.progress_bar.setValue)
 
-    def blocking_call(self, function, **kwargs):
+    def blocking_call(self, function, *args, **kwargs):
         loop = QEventLoop()
         thread = QThread()
-        worker = PyWorker(function, **kwargs)
+        worker = PyWorker(function, *args, **kwargs)
         worker.moveToThread(thread)
 
         results = {}
@@ -467,10 +474,33 @@ class MainWindow(QMainWindow):
         self.overlay.start()
         thread.start()
 
-        loop.exec()  # <-- blocks *logically* but UI still alive
+        loop.exec()  # blocks logically but UI still alive
 
         thread.wait()
 
         self.overlay.stop()
 
         return results.get("value")
+
+    def async_call(self, result_handler, function, *args, **kwargs):
+        thread = QThread()
+        worker = PyWorker(function, *args, **kwargs)
+        task = (thread, worker)
+
+        worker.moveToThread(thread)
+
+        thread.started.connect(worker.run)
+        worker.result.connect(result_handler)
+        worker.finished.connect(thread.quit)
+        worker.finished.connect(worker.deleteLater)
+        thread.finished.connect(thread.deleteLater)
+        worker.finished.connect(lambda: self.cleanup_task(task))
+
+        self.gui_tasks.append(task)
+        print(len(self.gui_tasks))
+
+        thread.start()
+
+    def cleanup_task(self, task):
+        if task in self.gui_tasks:
+            self.gui_tasks.remove(task)
