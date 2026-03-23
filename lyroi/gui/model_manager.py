@@ -27,7 +27,7 @@ class ModelManager:
         try:
             result = check_version_online(model)
             return result
-        except Exception:
+        except:
             return "N/A"
 
     def check_for_updates(self, model) -> str:
@@ -37,7 +37,7 @@ class ModelManager:
         try:
             online_version = check_version_online(model)
         except:
-            return "The online repository cannot be reached.\n\nDo you want to try to install the \"" + model_name + "\" model anyway?",
+            return "The online repository cannot be reached.\n\nDo you want to try to install the \"" + model_name + "\" model anyway?"
 
         local_version = self.get_installed_version(model)
 

@@ -59,7 +59,7 @@ class MainWindow(QMainWindow):
         super().__init__()
 
         self.setWindowTitle("LyROI")
-        self.resize(800, 650)
+        self.resize(700, 650)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
 
@@ -209,6 +209,7 @@ class MainWindow(QMainWindow):
         self.btn_install = QPushButton("Install / Update")
 
         self.model_label.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Maximum)
+        self.model_dropdown.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Maximum)
 
         self.btn_install.clicked.connect(self.model_install_dialog)
         self.model_dropdown.currentIndexChanged.connect(self.update_installed_version)
@@ -302,6 +303,9 @@ class MainWindow(QMainWindow):
             self.model_dropdown.addItem(self.model_manager.get_pretty_name(model), userData=model)
         self.update_installed_version()
 
+        size = self.model_dropdown.sizeHint().width() + 5
+        self.model_dropdown.setMaximumWidth(size)
+
     def update_installed_version(self):
         model = self.model_dropdown.currentData()
         version = self.model_manager.get_installed_version(model)
@@ -328,9 +332,9 @@ class MainWindow(QMainWindow):
 
     def model_install_dialog(self):
         model = self.model_dropdown.currentData()
-        model_name = self.model_dropdown.currentText()
 
         msg = self.blocking_call(self.model_manager.check_for_updates, model = model)
+        print(msg)
 
         reply = QMessageBox.question(
             self,
