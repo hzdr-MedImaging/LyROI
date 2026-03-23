@@ -41,7 +41,7 @@ Name: "{userdesktop}\{#MyAppName}"; Filename: "{code:GetEnvPath}/Scripts/{#GUIex
 var
   CpuRadio: TRadioButton;
   CudaRadio: TRadioButton;
-  NvidiaDetected: Boolean;
+  CudaLatestRadio: TRadioButton;
 
 // ; ------------------------------------------------------------
 // ; Returns full path to conda executable
@@ -70,45 +70,38 @@ begin
 end;
 
 // ; ------------------------------------------------------------
-// ; Detect NVIDIA GPU by running "nvidia-smi"
-// ; If command succeeds → NVIDIA present
-// ; ------------------------------------------------------------
-function NvidiaExists(): Boolean;
-var
-  ResultCode: Integer;
-begin
-  Result :=
-    Exec('cmd.exe', '/C nvidia-smi', '',
-         SW_HIDE, ewWaitUntilTerminated, ResultCode)
-    and (ResultCode = 0);
-end;
-
-// ; ------------------------------------------------------------
 // ; Create hardware selection page
 // ; ------------------------------------------------------------
 procedure InitializeWizard;
 var
   Page: TWizardPage;
 begin
-  NvidiaDetected := NvidiaExists();
-
-  Page := CreateCustomPage(wpSelectDir,
+  Page := CreateCustomPage(wpSelectComponents,
     'Hardware Selection',
     'Select hardware acceleration');
 
   CpuRadio := TRadioButton.Create(Page.Surface);
   CpuRadio.Parent := Page.Surface;
-  CpuRadio.Caption := 'CPU (recommended)';
+  CpuRadio.Caption := 'CPU (no NVIDIA GPU available)';
   CpuRadio.Top := 16;
   CpuRadio.Left := 16;
-  CpuRadio.Checked := not NvidiaDetected;
+  CpuRadio.Width := Page.SurfaceWidth - 32;
+  CpuRadio.Checked := True;
 
   CudaRadio := TRadioButton.Create(Page.Surface);
   CudaRadio.Parent := Page.Surface;
-  CudaRadio.Caption := 'NVIDIA GPU (CUDA 12.6)';
-  CudaRadio.Top := 40;
+  CudaRadio.Caption := 'CUDA 12.6 (NVIDIA GPU, recommended)';
+  CudaRadio.Top := CpuRadio.Top + CpuRadio.Height + ScaleY(8);
   CudaRadio.Left := 16;
-  CudaRadio.Checked := NvidiaDetected;
+  CudaRadio.Width := Page.SurfaceWidth - 32;
+  
+  CudaLatestRadio := TRadioButton.Create(Page.Surface);
+  CudaLatestRadio.Parent := Page.Surface;
+  CudaLatestRadio.Caption := 'CUDA 13.0 (NVIDIA GPU, latest models)';
+  CudaLatestRadio.Top := CudaRadio.Top + CudaRadio.Height + ScaleY(8);
+  CudaLatestRadio.Left := 16;
+  CudaLatestRadio.Width := Page.SurfaceWidth - 32;
+  
 end;
 
 // ; ------------------------------------------------------------
@@ -219,8 +212,12 @@ begin
     TorchCmd :=
       '-m pip install torch --index-url https://download.pytorch.org/whl/cu126'
   else
+    if CudaLatestRadio.Checked then
     TorchCmd :=
-      '-m pip install torch';
+      '-m pip install torch --index-url https://download.pytorch.org/whl/cu130'
+      else
+        TorchCmd :=
+          '-m pip install torch';
 
   RunOrFail(GetPython(''), TorchCmd);
 end;
