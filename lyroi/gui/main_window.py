@@ -59,7 +59,7 @@ class MainWindow(QMainWindow):
         super().__init__()
 
         self.setWindowTitle("LyROI")
-        self.resize(900, 650)
+        self.resize(800, 650)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
 
@@ -202,17 +202,32 @@ class MainWindow(QMainWindow):
 
         self.model_label = QLabel("Select mode")
         self.model_dropdown = QComboBox()
-        self.model_version_label = QLabel("Installed: unknown")
+        self.model_version_tag_offline = QLabel("Installed: ")
+        self.model_version_tag_online = QLabel("Latest: ")
+        self.model_version_val_offline = QLabel("Unknown")
+        self.model_version_val_online = QLabel("Unknown")
         self.btn_install = QPushButton("Install / Update")
 
         self.model_label.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Maximum)
 
         self.btn_install.clicked.connect(self.model_install_dialog)
         self.model_dropdown.currentIndexChanged.connect(self.update_installed_version)
+        self.model_dropdown.currentIndexChanged.connect(self.update_online_version)
+
+        model_version_layout = QGridLayout()
+        tag_width = self.model_version_tag_offline.sizeHint().width() + 10
+        self.model_version_tag_online.setFixedWidth(tag_width)
+        self.model_version_tag_offline.setFixedWidth(tag_width)
+        model_version_layout.addWidget(self.model_version_tag_offline, 0, 0)
+        model_version_layout.addWidget(self.model_version_tag_online, 1, 0)
+        model_version_layout.addWidget(self.model_version_val_offline, 0, 1)
+        model_version_layout.addWidget(self.model_version_val_online, 1, 1)
+        model_version_layout.setSpacing(0)
+        model_version_layout.setContentsMargins(10, 0, 0, 0)
 
         model_layout.addWidget(self.model_label)
         model_layout.addWidget(self.model_dropdown)
-        model_layout.addWidget(self.model_version_label)
+        model_layout.addLayout(model_version_layout)
         model_layout.addWidget(self.btn_install)
 
         model_group.setLayout(model_layout)
@@ -290,7 +305,26 @@ class MainWindow(QMainWindow):
     def update_installed_version(self):
         model = self.model_dropdown.currentData()
         version = self.model_manager.get_installed_version(model)
-        self.model_version_label.setText(f"Installed: {version}")
+        self.model_version_val_offline.setText(version)
+
+    def update_online_version(self):
+        model = self.model_dropdown.currentData()
+
+        def get_version():
+            return self.model_manager.get_online_version(model)
+
+        def set_version(version):
+            self.model_version_val_online.setText(version)
+            if version != "N/A":
+                set_property_and_update(self.model_version_val_online, "status", "")
+            else:
+                set_property_and_update(self.model_version_val_online, "status", "bad")
+            #self.model_dropdown.setEnabled(True)
+
+        self.model_version_val_online.setText("Checking...")
+        set_property_and_update(self.model_version_val_online, "status", "neutral")
+        #self.model_dropdown.setEnabled(False)
+        self.async_call(set_version, get_version, kill_signal=self.model_dropdown.currentIndexChanged)
 
     def model_install_dialog(self):
         model = self.model_dropdown.currentData()
@@ -348,26 +382,25 @@ class MainWindow(QMainWindow):
     def update_device_availability(self):
         device = self.device_dropdown.currentData()
 
-        def get_availability(device):
+        def get_availability():
             return self.device_manager.is_available(device)
 
         def set_device_status(is_available):
-            self.device_dropdown.setEnabled(False)
             if is_available:
                 self.device_status_label.setText("Status: Available")
                 set_property_and_update(self.device_status_label, "status", "good")
             else:
                 set_property_and_update(self.device_status_label, "status", "bad")
                 self.device_status_label.setText("Status: Not Available")
-            self.device_dropdown.setEnabled(True)
+            #self.device_dropdown.setEnabled(True)
 
         if self.device_manager.has_availability(device):
-            set_device_status(get_availability(device)) # no need to wait
+            set_device_status(get_availability()) # no need to wait
         else:
             self.device_status_label.setText("Status: Checking...")
             set_property_and_update(self.device_status_label, "status", "neutral")
-            #QTimer.singleShot(400, set_device_status) # it might take a while, let's not block interface
-            self.async_call(set_device_status, get_availability, device)
+            #self.device_dropdown.setEnabled(False)
+            self.async_call(set_device_status, get_availability, kill_signal=self.device_dropdown.currentIndexChanged)
 
 
     # ---------------- Run Logic ---------------- #
@@ -481,7 +514,7 @@ class MainWindow(QMainWindow):
 
         return results.get("value")
 
-    def async_call(self, result_handler, function, *args, **kwargs):
+    def async_call(self, result_handler, function, kill_signal = None, *args, **kwargs):
         thread = QThread()
         worker = PyWorker(function, *args, **kwargs)
         task = (thread, worker)
@@ -495,8 +528,13 @@ class MainWindow(QMainWindow):
         thread.finished.connect(thread.deleteLater)
         worker.finished.connect(lambda: self.cleanup_task(task))
 
+        if kill_signal:
+            def ignore_result():
+                worker.muted = True
+                kill_signal.disconnect(ignore_result)
+            kill_signal.connect(ignore_result)
+
         self.gui_tasks.append(task)
-        print(len(self.gui_tasks))
 
         thread.start()
 

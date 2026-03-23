@@ -23,6 +23,13 @@ class ModelManager:
         except Exception:
             return "Corrupted"
 
+    def get_online_version(self, model):
+        try:
+            result = check_version_online(model)
+            return result
+        except Exception:
+            return "N/A"
+
     def check_for_updates(self, model) -> str:
         model_name = self.get_pretty_name(model)
         msg = "Do you want to install the \"" + model_name + "\" model?"

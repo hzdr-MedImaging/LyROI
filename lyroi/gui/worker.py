@@ -5,7 +5,7 @@ import subprocess
 import sys
 import time
 
-from PyQt5.QtCore import QThread, pyqtSignal, QObject
+from PyQt5.QtCore import QThread, pyqtSignal, QObject, pyqtSlot
 
 
 # Only for Windows
@@ -142,8 +142,11 @@ class PyWorker(QObject):
         self.args = args
         self.kwargs = kwargs
 
+        self.muted = False
+
 
     def run(self):
         result = self.function(*self.args,**self.kwargs)
-        self.result.emit(result)
+        if not self.muted:
+            self.result.emit(result)
         self.finished.emit()
