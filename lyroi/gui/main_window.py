@@ -85,10 +85,12 @@ class MainWindow(QMainWindow):
         layout.addWidget(selector.input_error, row + 1, 1, alignment=Qt.AlignmentFlag.AlignTop)
         layout.setRowMinimumHeight(row + 1, selector.input_error.sizeHint().height() + 1)
 
-    def add_note(self, layout: QGridLayout, text: str):
+    def add_note(self, layout: QGridLayout, label: QLabel):
         row = layout.rowCount()
         columns = layout.columnCount()
-        layout.addWidget(QLabel(text), row, 0, 1, columns)
+        label.setProperty("type", "note")
+        label.setWordWrap(True)
+        layout.addWidget(label, row, 0, 1, columns)
 
     def define_styles(self):
         self.setStyleSheet("""
@@ -107,6 +109,9 @@ class MainWindow(QMainWindow):
                 color: #388e3c  
             }
             QLabel[status="neutral"] {
+                color: #616161  
+            }
+            QLabel[type="note"] {
                 color: #616161  
             }
         """)
@@ -170,10 +175,12 @@ class MainWindow(QMainWindow):
 
         self.batch_input = FileSelector(self,"Input Directory", True)
         self.batch_output = FileSelector(self,"Output Directory", True)
+        self.batch_note_label = QLabel(self)
 
         self.add_file_selector(batch_layout, self.batch_input)
-        #self.add_note(batch_layout, "Note: abc")
         self.add_file_selector(batch_layout, self.batch_output)
+
+        self.add_note(batch_layout, self.batch_note_label)
 
         self.batch_group.setLayout(batch_layout)
         layout.addWidget(self.batch_group)
@@ -214,6 +221,7 @@ class MainWindow(QMainWindow):
         self.btn_install.clicked.connect(self.model_install_dialog)
         self.model_dropdown.currentIndexChanged.connect(self.update_installed_version)
         self.model_dropdown.currentIndexChanged.connect(self.update_online_version)
+        self.model_dropdown.currentIndexChanged.connect(self.update_notes)
 
         model_version_layout = QGridLayout()
         tag_width = self.model_version_tag_offline.sizeHint().width() + 10
@@ -301,10 +309,14 @@ class MainWindow(QMainWindow):
         models = self.model_manager.get_available_models()
         for model in models:
             self.model_dropdown.addItem(self.model_manager.get_pretty_name(model), userData=model)
-        self.update_installed_version()
 
         size = self.model_dropdown.sizeHint().width() + 5
         self.model_dropdown.setMaximumWidth(size)
+
+    def update_notes(self):
+        suff_string = self.model_manager.get_suffix_string(self.model_dropdown.currentData())
+        self.batch_note_label.setText('Note: files in the input folder should follow the nnU-Net conventions: '
+                                    'file name should start with unique patient ID and end with appropriate suffix (' + suff_string+'). Only .nii.gz files are supported.')
 
     def update_installed_version(self):
         model = self.model_dropdown.currentData()

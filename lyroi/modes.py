@@ -62,5 +62,8 @@ def get_folds(mode: str) -> List[Union[int, str]]:
 def get_suffixes(mode: str) -> List[str]:
     return list(mode_list[mode].suffixes.values())
 
+def get_suffix_dict(mode: str) -> Dict[str, str]:
+    return mode_list[mode].suffixes
+
 def get_archive_names(mode: str):
     return mode_list[mode].archive_names
