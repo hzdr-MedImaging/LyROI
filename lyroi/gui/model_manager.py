@@ -1,7 +1,7 @@
 import subprocess
 
 from lyroi.utils import check_version_local, check_version_online, check_model, get_download_size, format_file_size
-from lyroi.modes import get_mode_list, get_pretty_name, get_folds, get_suffix_dict
+from lyroi.modes import get_mode_list, get_pretty_name, get_folds, get_suffix_dict, get_archive_names
 
 
 class ModelManager:
@@ -14,6 +14,9 @@ class ModelManager:
 
     def get_n_folds(self, model):
         return len(get_folds(model))
+
+    def get_n_archives(self, model):
+        return len(get_archive_names(model))
 
     def get_suffix_string(self, model):
         suffixes = get_suffix_dict(model)

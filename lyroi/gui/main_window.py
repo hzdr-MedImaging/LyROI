@@ -231,14 +231,24 @@ class MainWindow(QMainWindow):
         # -------- Progress bar -------- #
         progress_layout = QGridLayout()
 
-        self.progress_label = QLabel("Current Task Progress")
+        self.progress_label = QLabel("Current Progress")
         self.progress_bar = QProgressBar()
         self.progress_bar.setRange(0, 100)
         self.progress_bar.setValue(0)
         self.progress_bar.setAlignment(Qt.AlignCenter)
 
+        self.progress_total_label = QLabel("Total Progress")
+        self.progress_total_bar = QProgressBar()
+        self.progress_total_bar.setRange(0, 100)
+        self.progress_total_bar.setValue(0)
+        self.progress_total_bar.setAlignment(Qt.AlignCenter)
+
         progress_layout.addWidget(self.progress_label, 0, 0)
         progress_layout.addWidget(self.progress_bar, 0, 1)
+        progress_layout.addWidget(self.progress_total_label, 1, 0)
+        progress_layout.addWidget(self.progress_total_bar, 1, 1)
+        progress_layout.setVerticalSpacing(2)
+
 
         layout.addLayout(progress_layout)
 
@@ -260,11 +270,14 @@ class MainWindow(QMainWindow):
         self.btn_run.setEnabled(False)
         self.btn_stop.setEnabled(True)
         set_property_and_update(self.progress_bar, "inactive", False)
+        set_property_and_update(self.progress_total_bar, "inactive", False)
 
-    def set_idle_state(self):
+    def set_idle_state(self, deactivate_progress = True):
         self.btn_run.setEnabled(True)
         self.btn_stop.setEnabled(False)
-        set_property_and_update(self.progress_bar, "inactive", True)
+        if deactivate_progress:
+            set_property_and_update(self.progress_bar, "inactive", True)
+            set_property_and_update(self.progress_total_bar, "inactive", True)
 
     # ---------------- Model Logic ---------------- #
 
@@ -329,6 +342,8 @@ class MainWindow(QMainWindow):
         self.worker = CommandWorker(
             ["lyroi_install", "--mode", model, "-y", "-f"])
         self.connect_worker()
+        self.worker.set_n_models(self.model_manager.get_n_archives(model))
+        self.worker.finished_signal.connect(self.update_installed_version) # extra connection specific for install
         self.worker.start()
         self.set_active_state()
 
@@ -454,14 +469,16 @@ class MainWindow(QMainWindow):
             self.worker.stop()
 
     def finish_handler(self):
+        is_terminated = self.worker.get_error_status()
         self.worker = None
         self.console.append("\nFinished.\n")
-        self.set_idle_state()
+        self.set_idle_state(is_terminated)
 
     def connect_worker(self):
         self.worker.output_signal.connect(self.console.append)
         self.worker.finished_signal.connect(self.finish_handler)
         self.worker.progress_signal.connect(self.progress_bar.setValue)
+        self.worker.progress_total_signal.connect(self.progress_total_bar.setValue)
 
     def blocking_call(self, function, *args, **kwargs):
         loop = QEventLoop()
