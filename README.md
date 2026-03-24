@@ -105,6 +105,21 @@ for the network training and agreeing to share the resulting models.
    run on CPU (can be **VERY** slow). Flag `-d cpu-max` can help with cpu performance by using all available
    computational resources (may slow down other programs). `nnUNet_def_n_proc` environment variable can be set to limit
    the number of utilized cpu cores in `cpu-max` mode.
+6. (ALTERNATIVE) Use LyROI via graphical user interface:
+   ```
+   lyroi_gui
+   ```
+   You can also create a shortcut for `lyroi_gui` executable which can make your life easier if you are not comfortable
+   using command line.
+   To find the executable, run
+   - Linux:
+      ```
+      which lyroi_gui
+      ```
+   - Windows:
+      ```
+      where lyroi_gui
+      ```
 
 ## Manual Installation and Use
 
