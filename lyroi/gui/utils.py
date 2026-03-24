@@ -1,6 +1,9 @@
 import pathlib
 
-from PyQt5.QtWidgets import QFrame, QHBoxLayout, QApplication, QFileDialog, QMessageBox, QLabel
+from PyQt5.QtWidgets import QFrame, QHBoxLayout, QApplication, QFileDialog, QMessageBox, QLabel, QWidget, QLineEdit, \
+    QPushButton
+
+from PyQt5.QtCore import Qt
 
 
 class DirectoryDialog(QFileDialog):
@@ -41,6 +44,43 @@ class DirectoryDialog(QFileDialog):
             return ""
 
 
+class FileSelector:
+    def __init__(self, parent: QWidget, label: QLabel, directory: bool, output = False):
+        self.label = QLabel(label)
+        self.line_edit = QLineEdit()
+        self.button = QPushButton("Browse")
+
+        self.input_error = QLabel("Missing required field")
+        self.input_error.setStyleSheet("color: #d32f2f; font-size: 10px")
+        self.input_error.setMargin(-1)
+        self.input_error.setVisible(False)
+        self.input_error.setAlignment(Qt.AlignLeft)
+        self.input_error.setAlignment(Qt.AlignTop)
+
+        def browse():
+            if directory:
+                if output:
+                    path = DirectoryDialog.getDirectoryWithWarning(parent, label)
+                else:
+                    path = QFileDialog.getExistingDirectory(parent, label, options = QFileDialog.DontResolveSymlinks)
+            else:
+                if output:
+                    path, _ = QFileDialog.getSaveFileName(parent, label, filter = "NIfTI files (*.nii.gz)")
+                else:
+                    path, _ = QFileDialog.getOpenFileName(parent, label, filter = "NIfTI files (*.nii.gz)")
+            if path:
+                self.line_edit.setText(path)
+
+        self.line_edit.textChanged.connect(self.set_invalid)
+        self.button.clicked.connect(browse)
+
+    def set_invalid(self):
+        value = self.is_invalid()
+        self.input_error.setVisible(value)
+        set_property_and_update(self.line_edit, "invalid", value)
+
+    def is_invalid(self):
+        return self.line_edit.text().strip() == ""
 
 
 def validate_path(path):

@@ -1,5 +1,3 @@
-import time
-
 from PyQt5.QtGui import QFontMetrics, QIcon
 from PyQt5.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
@@ -13,49 +11,11 @@ from lyroi.devices import DeviceManager
 from lyroi.gui.worker import CommandWorker, PyWorker
 from lyroi.gui.model_manager import ModelManager
 from lyroi.gui.settings import Settings
-from lyroi.gui.utils import visualize_grid, set_property_and_update, set_ui_scale, DirectoryDialog
+from lyroi.gui.utils import visualize_grid, set_property_and_update, set_ui_scale, DirectoryDialog, FileSelector
 from lyroi.gui.loading_screen import LoadingOverlay
 
 from lyroi import __legal__
 
-
-class FileSelector:
-    def __init__(self, parent: QWidget, label: QLabel, directory: bool, output = False):
-        self.label = QLabel(label)
-        self.line_edit = QLineEdit()
-        self.button = QPushButton("Browse")
-
-        self.input_error = QLabel("Missing required field")
-        self.input_error.setStyleSheet("color: #d32f2f; font-size: 10px")
-        self.input_error.setMargin(-1)
-        self.input_error.setVisible(False)
-        self.input_error.setAlignment(Qt.AlignLeft)
-        self.input_error.setAlignment(Qt.AlignTop)
-
-        def browse():
-            if directory:
-                if output:
-                    path = DirectoryDialog.getDirectoryWithWarning(parent, label)
-                else:
-                    path = QFileDialog.getExistingDirectory(parent, label)
-            else:
-                if output:
-                    path, _ = QFileDialog.getSaveFileName(parent, label, filter = "NIfTI files (*.nii.gz)")
-                else:
-                    path, _ = QFileDialog.getOpenFileName(parent, label, filter = "NIfTI files (*.nii.gz)")
-            if path:
-                self.line_edit.setText(path)
-
-        self.line_edit.textChanged.connect(self.set_invalid)
-        self.button.clicked.connect(browse)
-
-    def set_invalid(self):
-        value = self.is_invalid()
-        self.input_error.setVisible(value)
-        set_property_and_update(self.line_edit, "invalid", value)
-
-    def is_invalid(self):
-        return self.line_edit.text().strip() == ""
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -349,7 +309,6 @@ class MainWindow(QMainWindow):
         model = self.model_dropdown.currentData()
 
         msg = self.blocking_call(self.model_manager.check_for_updates, model = model)
-        print(msg)
 
         reply = QMessageBox.question(
             self,

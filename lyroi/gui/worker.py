@@ -25,6 +25,7 @@ class CommandWorker(QThread):
     output_signal = pyqtSignal(str)
     finished_signal = pyqtSignal()
     progress_signal = pyqtSignal(int)
+    progress_total_signal = pyqtSignal(int)
 
     tqdm_re = re.compile(r"(\d+)%\|")
 
@@ -34,6 +35,7 @@ class CommandWorker(QThread):
         self.process = None
         self._in_tqdm = False
         self._current_fold = 0
+        self._n_tasks = 1
         self.n_folds = n_folds
 
     def run(self):
@@ -81,9 +83,7 @@ class CommandWorker(QThread):
 
         match = self.tqdm_re.search(text)
         if match:
-            percent = int(match.group(1))
-            percent = (100 * self._current_fold + percent) / self.n_folds
-            self.progress_signal.emit(round(percent))
+            self.progress_signal.emit(self.task_progress(match.group(1)))
             if not self._in_tqdm:
                 self.output_signal.emit("Task in progress...\n")
             self._in_tqdm = True
@@ -100,6 +100,15 @@ class CommandWorker(QThread):
 
         # everything else goes to console
         self.output_signal.emit(text)
+
+    def set_n_tasks(self, n_tasks):
+        print(n_tasks)
+        self._n_tasks = n_tasks
+
+    def task_progress(self, percent):
+        percent = int(percent)
+        percent = (100 * self._current_fold + percent) / self.n_folds
+        return round(percent)
 
     def term_process(self):
         if os.name == "nt":
