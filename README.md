@@ -47,11 +47,11 @@ details.
 For simplified workflow, LyROI is also available as a stand-alone tool, see [quick start](#quick-start) section for
 usage and installation instructions.
 
-Please cite [nnU-Net](https://www.nature.com/articles/s41592-020-01008-z) and the [following paper](DOI:XXX) when using
+Please cite [nnU-Net](https://www.nature.com/articles/s41592-020-01008-z) and the [following paper](https://link.springer.com/article/10.1007/s00259-026-07810-9) when using
 LyROI:
 
 ```
-XXX
+Nikulin, P., Hoberück, S., Apostolova, I. et al. A convolutional neural network for fully automated total metabolic tumor volume delineation in patients with aggressive Non-Hodgkin lymphoma. Eur J Nucl Med Mol Imaging (2026). Advance online publication. https://doi.org/10.1007/s00259-026-07810-9
 ```
 
 Special thanks to the PETAL study group for the access to the [PETAL](https://doi.org/10.1200/jco.2017.76.8093) trial dataset
