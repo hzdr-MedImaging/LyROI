@@ -1,4 +1,46 @@
-from PyQt5.QtWidgets import QFrame, QHBoxLayout, QApplication
+import pathlib
+
+from PyQt5.QtWidgets import QFrame, QHBoxLayout, QApplication, QFileDialog, QMessageBox, QLabel
+
+
+class DirectoryDialog(QFileDialog):
+    def __init__(self, parent = None):
+        super().__init__(parent)
+        self.setFileMode(QFileDialog.Directory)
+        self.setOption(QFileDialog.ShowDirsOnly, False)
+
+    def accept(self):
+        dir_path = self.selectedFiles()[0]
+
+        files = [p for p in pathlib.Path(dir_path).iterdir() if p.is_file()]
+
+        if len(files) > 0:
+            reply = QMessageBox.question(
+                self,
+                "Directory Not Empty",
+                "The selected directory is not empty and the files there might be overwritten.\nDo you want to continue?",
+                QMessageBox.Yes | QMessageBox.No,
+                QMessageBox.No
+            )
+            if reply == QMessageBox.No:
+                return  # prevent closing
+
+        super().accept()
+    
+    @staticmethod
+    def getDirectoryWithWarning(parent = None, caption = '', directory = ''):
+        #self.setParent(parent)
+        selector = DirectoryDialog(parent)
+        if caption:
+            selector.setWindowTitle(caption)
+        if directory:
+            selector.setDirectory(directory)
+        if selector.exec():
+            return selector.selectedFiles()[0]
+        else:
+            return ""
+
+
 
 
 def validate_path(path):

@@ -13,14 +13,14 @@ from lyroi.devices import DeviceManager
 from lyroi.gui.worker import CommandWorker, PyWorker
 from lyroi.gui.model_manager import ModelManager
 from lyroi.gui.settings import Settings
-from lyroi.gui.utils import visualize_grid, set_property_and_update, set_ui_scale
+from lyroi.gui.utils import visualize_grid, set_property_and_update, set_ui_scale, DirectoryDialog
 from lyroi.gui.loading_screen import LoadingOverlay
 
 from lyroi import __legal__
 
 
 class FileSelector:
-    def __init__(self, parent: QWidget, label, directory, output = False):
+    def __init__(self, parent: QWidget, label: QLabel, directory: bool, output = False):
         self.label = QLabel(label)
         self.line_edit = QLineEdit()
         self.button = QPushButton("Browse")
@@ -34,7 +34,10 @@ class FileSelector:
 
         def browse():
             if directory:
-                path = QFileDialog.getExistingDirectory(parent, label)
+                if output:
+                    path = DirectoryDialog.getDirectoryWithWarning(parent, label)
+                else:
+                    path = QFileDialog.getExistingDirectory(parent, label)
             else:
                 if output:
                     path, _ = QFileDialog.getSaveFileName(parent, label, filter = "NIfTI files (*.nii.gz)")
@@ -174,7 +177,7 @@ class MainWindow(QMainWindow):
         batch_layout.setVerticalSpacing(0)
 
         self.batch_input = FileSelector(self,"Input Directory", True)
-        self.batch_output = FileSelector(self,"Output Directory", True)
+        self.batch_output = FileSelector(self,"Output Directory", True, output=True)
         self.batch_note_label = QLabel(self)
 
         self.add_file_selector(batch_layout, self.batch_input)
