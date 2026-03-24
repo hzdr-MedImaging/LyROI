@@ -96,7 +96,6 @@ class CommandWorker(QThread):
             if not self._in_tqdm:
                 self.output_signal.emit("Task in progress...\n")
                 self._current_case += 1  # increment case counter of tqdm loop start
-                self.output_signal.emit("Current case: " + str(self._current_case) + "/" + str(self.n_cases))
             self._in_tqdm = True
             self.progress_signal.emit(self.task_progress(match.group(1)))
             self.progress_total_signal.emit(self.total_progress(match.group(1)))
@@ -135,18 +134,15 @@ class CommandWorker(QThread):
 
     def set_n_cases(self, n_cases):
         n_cases = int(n_cases)
-        self.output_signal.emit("Cases:" + str(n_cases))
         self.n_cases = n_cases
 
     def set_n_models(self, n_models):
         n_models = int(n_models)
-        self.output_signal.emit("Models:" + str(n_models))
         self.n_models = n_models
 
     def set_current_model(self, index):
         index = int(index)
         index = index - 1
-        self.output_signal.emit("Current model:" + str(index))
         self._current_model = index
 
     def get_error_status(self):

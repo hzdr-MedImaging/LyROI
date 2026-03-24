@@ -39,7 +39,7 @@ def exit_handler(signal, frame):
   sys.exit(0)
 
 def terminate_handler(signal, frame):
-  print("Terminating execution...")
+  #print("Terminating execution...")
   sys.exit(0)
 
 signal.signal(signal.SIGINT, exit_handler)
