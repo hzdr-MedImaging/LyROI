@@ -66,4 +66,4 @@ requires = ["setuptools>=67.8.0"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-packages = ["lyroi"]
+packages = { find = { include = ["lyroi", "lyroi.*"] } }
