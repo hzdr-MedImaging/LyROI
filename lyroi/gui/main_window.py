@@ -11,8 +11,8 @@ from lyroi.devices import DeviceManager
 from lyroi.gui.worker import CommandWorker, PyWorker
 from lyroi.gui.model_manager import ModelManager
 from lyroi.gui.settings import Settings
-from lyroi.gui.utils import visualize_grid, set_property_and_update, set_ui_scale, DirectoryDialog, FileSelector
-from lyroi.gui.loading_screen import LoadingOverlay
+from lyroi.gui.utils import visualize_grid, set_property_and_update, set_ui_scale
+from lyroi.gui.components import LoadingOverlay, DirectoryDialog, FileSelector
 
 from lyroi import __legal__
 
