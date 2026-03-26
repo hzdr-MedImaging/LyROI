@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QPushButton, QLabel, QLineEdit, QTextEdit,
     QFileDialog, QComboBox, QRadioButton, QGroupBox,
-    QMessageBox, QProgressBar, QGridLayout, QSizePolicy, QAction
+    QMessageBox, QProgressBar, QGridLayout, QSizePolicy, QAction, QStyle
 )
 from PyQt5.QtCore import Qt, QTimer, QThread, QEventLoop
 
@@ -212,6 +212,13 @@ class MainWindow(QMainWindow):
         self.device_label = QLabel("Select device")
         self.device_dropdown = QComboBox()
         self.device_status_label = QLabel("")
+
+        self.btn_run.setIcon(self.btn_run.style().standardIcon(
+            QStyle.StandardPixmap.SP_MediaPlay
+        ))
+        self.btn_stop.setIcon(self.btn_stop.style().standardIcon(
+            QStyle.StandardPixmap.SP_MediaStop
+        ))
 
         self.device_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
 
