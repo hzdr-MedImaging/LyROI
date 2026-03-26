@@ -12,7 +12,7 @@ from lyroi.gui.worker import CommandWorker, PyWorker
 from lyroi.gui.model_manager import ModelManager
 from lyroi.gui.settings import Settings
 from lyroi.gui.utils import visualize_grid, set_property_and_update, set_ui_scale
-from lyroi.gui.components import LoadingOverlay, DirectoryDialog, FileSelector
+from lyroi.gui.components import LoadingOverlay, DirectoryDialog, FileSelector, DualProgressBar
 
 from lyroi import __legal__
 
@@ -229,28 +229,8 @@ class MainWindow(QMainWindow):
         layout.addLayout(run_layout)
 
         # -------- Progress bar -------- #
-        progress_layout = QGridLayout()
-
-        self.progress_label = QLabel("Current Progress")
-        self.progress_bar = QProgressBar()
-        self.progress_bar.setRange(0, 100)
-        self.progress_bar.setValue(0)
-        self.progress_bar.setAlignment(Qt.AlignCenter)
-
-        self.progress_total_label = QLabel("Total Progress")
-        self.progress_total_bar = QProgressBar()
-        self.progress_total_bar.setRange(0, 100)
-        self.progress_total_bar.setValue(0)
-        self.progress_total_bar.setAlignment(Qt.AlignCenter)
-
-        progress_layout.addWidget(self.progress_label, 0, 0)
-        progress_layout.addWidget(self.progress_bar, 0, 1)
-        progress_layout.addWidget(self.progress_total_label, 1, 0)
-        progress_layout.addWidget(self.progress_total_bar, 1, 1)
-        progress_layout.setVerticalSpacing(2)
-
-
-        layout.addLayout(progress_layout)
+        self.progress_bar = DualProgressBar(self)
+        layout.addWidget(self.progress_bar)
 
         # -------- Console -------- #
         self.console = QTextEdit()
@@ -269,15 +249,13 @@ class MainWindow(QMainWindow):
     def set_active_state(self):
         self.btn_run.setEnabled(False)
         self.btn_stop.setEnabled(True)
-        set_property_and_update(self.progress_bar, "inactive", False)
-        set_property_and_update(self.progress_total_bar, "inactive", False)
+        self.progress_bar.set_active()
 
     def set_idle_state(self, deactivate_progress = True):
         self.btn_run.setEnabled(True)
         self.btn_stop.setEnabled(False)
         if deactivate_progress:
-            set_property_and_update(self.progress_bar, "inactive", True)
-            set_property_and_update(self.progress_total_bar, "inactive", True)
+            self.progress_bar.set_inactive()
 
     # ---------------- Model Logic ---------------- #
 
@@ -477,8 +455,8 @@ class MainWindow(QMainWindow):
     def connect_worker(self):
         self.worker.output_signal.connect(self.console.append)
         self.worker.finished_signal.connect(self.finish_handler)
-        self.worker.progress_signal.connect(self.progress_bar.setValue)
-        self.worker.progress_total_signal.connect(self.progress_total_bar.setValue)
+        self.worker.progress_signal.connect(self.progress_bar.set_current)
+        self.worker.progress_total_signal.connect(self.progress_bar.set_overall)
 
     def blocking_call(self, function, *args, **kwargs):
         loop = QEventLoop()

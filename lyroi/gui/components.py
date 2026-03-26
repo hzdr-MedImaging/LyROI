@@ -1,6 +1,7 @@
 import pathlib
 
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QFileDialog, QMessageBox, QLabel, QLineEdit, QPushButton
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QFileDialog, QMessageBox, QLabel, QLineEdit, QPushButton, \
+    QProgressBar, QStackedLayout, QSizePolicy
 from PyQt5.QtCore import Qt, QTimer
 from PyQt5.QtGui import QPainter, QPen, QColor
 
@@ -168,3 +169,63 @@ class FileSelector:
 
     def is_invalid(self):
         return self.line_edit.text().strip() == ""
+
+class DualProgressBar(QWidget):
+    def __init__(self, parent=None, sub_bar_size = 3):
+        def encapsulate(widget: QWidget):
+            container = QWidget()
+            layout = QVBoxLayout(container)
+            layout.addStretch()
+            layout.addWidget(widget)
+            layout.setContentsMargins(0,0,0,0)
+            return container
+
+        super().__init__(parent)
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Maximum)
+        # Container widget for overlay
+        self.progress_layout = QStackedLayout(self)
+        self.progress_layout.setStackingMode(QStackedLayout.StackingMode.StackAll)
+
+        # Main overall progress bar (native)
+        self.overall_bar = QProgressBar()
+        self.overall_bar.setRange(0, 100)
+        self.overall_bar.setTextVisible(True)
+        self.overall_bar.setAlignment(Qt.AlignCenter)
+
+        # Current task progress (thin overlay)
+        self.current_bar = QProgressBar()
+        self.current_bar.setRange(0, 100)
+        self.current_bar.setTextVisible(False)
+        self.current_bar.setFixedHeight(sub_bar_size)
+        self.current_bar.setAlignment(Qt.AlignCenter)
+        self.current_container = encapsulate(self.current_bar)
+
+        self.shader = QProgressBar()
+        #self.shader.setTextVisible(False)
+        self.shader.setFixedHeight(sub_bar_size)
+        self.shader.setStyleSheet("background-color: #50ffffff; border: none;")
+        self.shader_container = encapsulate(self.shader)
+
+        self.progress_layout.addWidget(self.overall_bar)
+        self.progress_layout.addWidget(self.current_container)
+        self.progress_layout.addWidget(self.shader_container)
+
+        self.current_container.raise_()
+        self.shader_container.raise_()
+
+        self.set_current(0)
+        self.set_overall(0)
+
+    def set_current(self, percent: int):
+        self.current_bar.setValue(percent)
+
+    def set_overall(self, percent: int):
+        self.overall_bar.setValue(percent)
+
+    def set_active(self):
+        set_property_and_update(self.current_bar, "inactive", False)
+        set_property_and_update(self.overall_bar, "inactive", False)
+
+    def set_inactive(self):
+        set_property_and_update(self.current_bar, "inactive", True)
+        set_property_and_update(self.overall_bar, "inactive", True)
