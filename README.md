@@ -63,7 +63,9 @@ for the network training and agreeing to share the resulting models.
 > Working within a dedicated virtual environment (`venv` or `conda`) is highly recommended.
 > 
 > The exact instructions below are written for Linux operating system.
-> You may need to adjust them slightly for setup in Windows. 
+> You may need to adjust them slightly for setup in Windows.
+>
+> It is also possible to use a regular installer on Windows. You can find the executable in the [latest release](https://github.com/hzdr-MedImaging/LyROI/releases/latest) (still in beta, please report on any problems).
 
 > **Requirements**
 > - `python` (>= 3.9)
