@@ -23,6 +23,10 @@ class ModelManager:
         suff_strings = [key + ": " + value for key, value in suffixes.items()]
         return ", ".join(suff_strings)
 
+    def get_inputs(self, model):
+        suffixes = get_suffix_dict(model)
+        return suffixes.keys()
+
     def get_installed_version(self, model):
         if not check_model(model):
             return "Not installed"

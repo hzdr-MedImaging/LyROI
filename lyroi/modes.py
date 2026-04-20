@@ -31,6 +31,16 @@ mode_list = {
                   "PET": "_0001"},
         archive_names=["LyROI_Orig.zip", "LyROI_ResM.zip", "LyROI_ResL.zip"],
         default=True
+    ),
+    "pet": ModeInfo(
+        name="pet",
+        pretty_name="PET",
+        folds=[0, 1, 2, 3, 4],
+        model_plans=["nnUNetPlans_PET", "nnUNetResEncUNetMPlans_PET", "nnUNetResEncUNetLPlans_PET"],
+        model_config="3d_fullres",
+        suffixes={"PET": "_0000"},
+        archive_names=["LyROI_PET_Orig.zip", "LyROI_PET_ResM.zip", "LyROI_PET_ResL.zip"],
+        default=False
     )
 }
 

@@ -137,6 +137,7 @@ class FileSelector:
         self.label = QLabel(label)
         self.line_edit = QLineEdit()
         self.button = QPushButton("Browse")
+        self.visible = True
 
         self.input_error = QLabel("Missing required field")
         self.input_error.setStyleSheet("color: #d32f2f; font-size: 10px")
@@ -167,8 +168,22 @@ class FileSelector:
         self.input_error.setVisible(value)
         set_property_and_update(self.line_edit, "invalid", value)
 
+    def reset_invalid(self):
+        self.input_error.setVisible(False)
+        set_property_and_update(self.line_edit, "invalid", False)
+
     def is_invalid(self):
         return self.line_edit.text().strip() == ""
+
+    def set_visible(self, visible: bool):
+        self.visible = visible
+        self.label.setVisible(visible)
+        self.line_edit.setVisible(visible)
+        self.button.setVisible(visible)
+        self.input_error.setVisible(False)
+
+    def is_visible(self):
+        return self.visible
 
 class DualProgressBar(QWidget):
     def __init__(self, parent=None, sub_bar_size = 3):

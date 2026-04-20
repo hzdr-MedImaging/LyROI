@@ -185,6 +185,8 @@ class MainWindow(QMainWindow):
         self.model_dropdown.currentIndexChanged.connect(self.update_installed_version)
         self.model_dropdown.currentIndexChanged.connect(self.update_online_version)
         self.model_dropdown.currentIndexChanged.connect(self.update_notes)
+        self.model_dropdown.currentIndexChanged.connect(self.update_inputs_visibility)
+
 
         model_version_layout = QGridLayout()
         tag_width = self.model_version_tag_offline.sizeHint().width() + 10
@@ -252,6 +254,16 @@ class MainWindow(QMainWindow):
     def update_mode_visibility(self):
         self.batch_group.setVisible(self.radio_batch.isChecked())
         self.single_group.setVisible(self.radio_single.isChecked())
+
+    def update_inputs_visibility(self):
+        model = self.model_dropdown.currentData()
+        inputs = self.model_manager.get_inputs(model)
+        self.ct_file.set_visible("CT" in inputs)
+        self.pet_file.set_visible("PET" in inputs)
+
+        self.ct_file.reset_invalid()
+        self.pet_file.reset_invalid()
+        self.output_file.reset_invalid()
 
     def set_active_state(self):
         self.btn_run.setEnabled(False)
@@ -339,8 +351,10 @@ class MainWindow(QMainWindow):
             fields.append(self.batch_input)
             fields.append(self.batch_output)
         else:
-            fields.append(self.ct_file)
-            fields.append(self.pet_file)
+            if self.ct_file.is_visible():
+                fields.append(self.ct_file)
+            if self.pet_file.is_visible():
+                fields.append(self.pet_file)
             fields.append(self.output_file)
 
         flag = True
@@ -416,8 +430,8 @@ class MainWindow(QMainWindow):
             ]
 
         else:
-            pet = self.pet_file.line_edit.text()
-            ct = self.ct_file.line_edit.text()
+            pet = self.pet_file.line_edit.text() if self.pet_file.is_visible() else None
+            ct = self.ct_file.line_edit.text() if self.ct_file.is_visible() else None
             output_file = self.output_file.line_edit.text()
 
             tab_width = font_metrics.horizontalAdvance("Output file:") + 15

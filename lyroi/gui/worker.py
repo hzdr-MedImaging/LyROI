@@ -47,6 +47,7 @@ class CommandWorker(QThread):
 
     def run(self):
         safe_command = [str(x) for x in self.command]
+        safe_command = [x for x in self.command if x is not None] # filter out empty fields
         self.progress_signal.emit(0)
         self.progress_total_signal.emit(0)
 

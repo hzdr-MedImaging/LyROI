@@ -34,9 +34,14 @@ The collection of the trained models can be found here:
 [![DOI: 10.14278/rodare.4160](https://zenodo.org/badge/DOI/10.14278/rodare.4160.svg)](https://doi.org/10.14278/rodare.4160)
 
 List of available models:
-- `LyROI_Orig.zip`: regular U-Net
-- `LyROI_ResM.zip`: residual encoder U-Net (medium)
-- `LyROI_ResL.zip`: residual encoder U-Net (large)
+- PET/CT:
+  - `LyROI_Orig.zip`: regular U-Net
+  - `LyROI_ResM.zip`: residual encoder U-Net (medium)
+  - `LyROI_ResL.zip`: residual encoder U-Net (large)
+- PET-only:
+  - `LyROI_PET_Orig.zip`: regular U-Net
+  - `LyROI_PET_ResM.zip`: residual encoder U-Net (medium)
+  - `LyROI_PET_ResL.zip`: residual encoder U-Net (large)
 
 
 
