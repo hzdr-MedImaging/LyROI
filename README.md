@@ -55,8 +55,16 @@ usage and installation instructions.
 Please cite [nnU-Net](https://www.nature.com/articles/s41592-020-01008-z) and the [following paper](https://link.springer.com/article/10.1007/s00259-026-07810-9) when using
 LyROI:
 
-```
-Nikulin, P., Hoberück, S., Apostolova, I. et al. A convolutional neural network for fully automated total metabolic tumor volume delineation in patients with aggressive Non-Hodgkin lymphoma. Eur J Nucl Med Mol Imaging (2026). Advance online publication. https://doi.org/10.1007/s00259-026-07810-9
+```bib
+@article{nikulin2026,
+  title = {A convolutional neural network for fully automated total metabolic tumor volume delineation in patients with aggressive Non-Hodgkin lymphoma},
+  author = {Nikulin, Pavel and Hoberück, Sebastian and Apostolova, Ivayla and Maus, Jens and Hüttmann, Andreas and Dührsen, Ulrich and Kroschinsky, Frank and Kotzerke, Jörg and Von Bonin, Malte and Bundschuh, Ralph A. and Braune, Anja and Hofheinz, Frank},
+  journal = {European Journal of Nuclear Medicine and Molecular Imaging},
+  pages = {1-14},
+  year = {2026},
+  publisher = {Springer},
+  doi = {10.1007/s00259-026-07810-9}
+}
 ```
 
 Special thanks to the PETAL study group for the access to the [PETAL](https://doi.org/10.1200/jco.2017.76.8093) trial dataset
