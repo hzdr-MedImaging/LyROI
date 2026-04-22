@@ -1,0 +1,142 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: >-
+  LyROI: nnU-Net-based Lymphoma Total Metabolic Tumor Volume
+  Delineation
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Pavel
+    family-names: Nikulin
+    email: p.nikulin@hzdr.de
+    affiliation: >-
+      Department of Positron Emission Tomography,
+      Helmholtz-Zentrum Dresden-Rossendorf, Institute of
+      Radiopharmaceutical Cancer Research, Dresden, Germany
+    orcid: 'https://orcid.org/0000-0002-4568-4018'
+  - given-names: Sebastian
+    family-names: Hoberück
+    email: Sebastian.Hoberueck@ukdd.de
+    affiliation: >-
+      Department of Nuclear Medicine, University Hospital
+      Carl Gustav Carus, Technische Universität Dresden,
+      Dresden, Germany
+  - given-names: Ivayla
+    family-names: Apostolova
+    email: i.apostolova@uke.de
+    affiliation: >-
+      Department of Diagnostic and Interventional Radiology
+      and Nuclear Medicine, University Hospital
+      Hamburg-Eppendorf, Hamburg, Germany
+  - given-names: Jens
+    family-names: Maus
+    email: j.maus@hzdr.de
+    affiliation: >-
+      Department of Positron Emission Tomography,
+      Helmholtz-Zentrum Dresden-Rossendorf, Institute of
+      Radiopharmaceutical Cancer Research, Dresden, Germany
+    orcid: 'https://orcid.org/0000-0002-7195-9927'
+  - given-names: Andreas
+    family-names: Hüttmann
+    email: Andreas.Huettmann@uk-essen.de
+    affiliation: >-
+      Department of Hematology, West German Cancer Center,
+      University Hospital Essen, University of
+      Duisburg-Essen, Essen, Germany
+  - given-names: Ulrich
+    family-names: Dührsen
+    email: Ulrich.Duehrsen@uk-essen.de
+    affiliation: >-
+      Department of Hematology, West German Cancer Center,
+      University Hospital Essen, University of
+      Duisburg-Essen, Essen, Germany
+  - given-names: Frank
+    family-names: Kroschinsky
+    email: Frank.Kroschinsky@ukdd.de
+    affiliation: >-
+      Medical Department I, Dresden University Hospital,
+      Dresden, Germany
+  - given-names: Jörg
+    family-names: Kotzerke
+    email: Joerg.Kotzerke@ukdd.de
+    affiliation: >-
+      Department of Nuclear Medicine, University Hospital
+      Carl Gustav Carus, Technische Universität Dresden,
+      Dresden, Germany
+  - given-names: Malte
+    family-names: von Bonin
+    email: Malte.Bonin@ukdd.de
+    affiliation: >-
+      Medical Department I, Dresden University Hospital,
+      Dresden, Germany
+  - given-names: Ralph
+    name-particle: A.
+    family-names: Bundschuh
+    email: Ralph.Bundschuh@ukdd.de
+    affiliation: >-
+      Department of Nuclear Medicine, University Hospital
+      Carl Gustav Carus, Technische Universität Dresden,
+      Dresden, Germany
+  - given-names: Anja
+    family-names: Braune
+    email: a.braune@hzdr.de
+    affiliation: >-
+      Department of Positron Emission Tomography,
+      Helmholtz-Zentrum Dresden-Rossendorf, Institute of
+      Radiopharmaceutical Cancer Research, Dresden, Germany
+    orcid: 'https://orcid.org/0000-0001-7707-9413'
+  - given-names: Frank
+    family-names: Hofheinz
+    email: f.hofheinz@hzdr.de
+    affiliation: >-
+      Department of Positron Emission Tomography,
+      Helmholtz-Zentrum Dresden-Rossendorf, Institute of
+      Radiopharmaceutical Cancer Research, Dresden, Germany
+    orcid: 'https://orcid.org/0000-0001-8016-4643'
+identifiers:
+  - type: doi
+    value: 10.1007/s00259-026-07810-9
+    description: Journal publication
+  - type: doi
+    value: 10.14278/rodare.4160
+    description: Data publication
+  - type: url
+    value: 'https://github.com/hzdr-MedImaging/LyROI'
+    description: Project Homepage
+repository-code: 'https://github.com/hzdr-MedImaging/LyROI'
+url: 'https://doi.org/10.14278/rodare.4160'
+abstract: >-
+  Lymphoma ROI prediction framework (LyROI) is a collection
+  of neural network models and support tools for metabolic
+  tumor volume delineation in (Non-Hodgkin) lymphoma
+  patients in FDG-PET/CT images.
+
+  A comprehensive description of development and evaluation
+  of the models is given in the respective paper. Briefly,
+  the models were trained with the nnU-Net software package.
+  A total of 1192 FDG-PET/CT scans from 716 patients with
+  Non-Hodgkin lymphoma participating in the PETAL trial
+  comprised the training dataset. The ground truth
+  delineation included all lesions (irrespective of size or
+  uptake) that were clinically considered as lymphoma
+  manifestations by an experienced observer. It was
+  developed iteratively with the assistance of intermediate
+  CNN models. Accurate contouring of each lesion was
+  achieved by selecting the most appropriate semi-automated
+  delineation algorithm, manually adjusting its settings,
+  and performing manual corrections when necessary.
+keywords:
+  - FDG PET
+  - Total metabolic tumor volume
+  - TMTV
+  - Cancer
+  - Non-Hodgkin lymphoma
+  - Convolutional neural network
+  - Delineation
+  - Deep-Learning
+  - nnUNet
+license: Apache-2.0
